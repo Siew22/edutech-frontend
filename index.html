@@ -171,8 +171,20 @@
                                     <h4>{{ item.title }}</h4>
                                     <p class="duration"><i class="far fa-clock"></i> {{ item.duration }}</p>
                                     <p class="price">{{ item.price === 0 ? 'Free' : 'RM' + item.price }}</p>
-                                    <button class="outline-btn" @click="viewItemDetails(item)">More details</button>
-                                    <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('Item', item.id)"><i class="fas fa-trash"></i> Delete</button>
+                                    
+                                    <!-- 1. 查看详情按钮 (保持原样) -->
+                                     <button class="outline-btn" @click="viewItemDetails(item)">More details</button>
+    
+                                     <!-- 2. 🚨 新增：学生注册/购买按钮 (点击后进入购物车) -->
+                                      <!-- 我们给它加上 add-cart-btn 类名，这样它就会变成漂亮的紫红色 -->
+                                       <button class="add-cart-btn" style="width: 100%; margin-top: 10px;" @click="addToCart(item, 'course')">
+                                        <i class="fas fa-plus"></i> Register Course
+                                    </button>
+                                    
+                                    <!-- 3. 管理员删除按钮 (保持原样) -->
+                                     <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('Item', item.id)" style="margin-top: 5px;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -516,43 +528,77 @@
             </div>
         </transition>
 
-        <!-- ================= 课程/资源详情弹窗 ================= -->
+        <!-- ================= 结账弹窗 (第一步：填地址 + 选支付方式) ================= -->
         <transition name="page-fade">
-            <div class="checkout-modal-wrapper" v-if="showItemModal && selectedItem">
+            <div class="checkout-modal-wrapper" v-if="showCheckoutModal">
                 <div class="checkout-modal">
-                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">{{ selectedItem.title }}</h3>
-                    <img v-if="selectedItem.img" :src="selectedItem.img" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Shipping & Payment</h3>
                     
-                    <p style="margin-bottom: 10px;"><i class="far fa-clock"></i> <strong>Duration:</strong> {{ selectedItem.duration }}</p>
-                    <p style="margin-bottom: 10px;"><i class="fas fa-tag"></i> <strong>Category:</strong> {{ selectedItem.tag }}</p>
-                    <p style="margin-bottom: 15px;"><i class="fas fa-pound-sign"></i> <strong>Price:</strong> {{ selectedItem.price === 0 ? 'Free' : 'RM' + selectedItem.price }}</p>
-                    
-                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; color:#444; line-height: 1.6; margin-bottom: 20px;">
-                        {{ selectedItem.description || 'No detailed description available.' }}
+                    <!-- 地址和国家 -->
+                    <div class="form-group">
+                        <label>Delivery Address</label>
+                        <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="123 Main St">
                     </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" v-model="checkoutForm.country" class="input-field" placeholder="Malaysia">
+                    </div>
+                    <div class="form-group">
+                        <label>Shipping Method</label>
+                        <select v-model="checkoutForm.shippingMethod" class="input-field">
+                            <option value="Ship">Standard Ship</option>
+                            <option value="Plane">Express Plane</option>
+                        </select>
+                    </div>
+
+                    <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;">
                     
-                    <button class="outline-btn" style="width:100%; padding: 12px; font-size: 1.05rem; border-radius: 8px;" @click="showItemModal = false">Close</button>
+                    <!-- 🚨 新增：支付方式选择 (这里调用 handlePayment 方法) -->
+                    <h4 style="margin-bottom:15px; color:#333;">Select Payment Method</h4>
+                    <div class="payment-options">
+                        <div class="payment-btn" @click="handlePayment('Maybank')">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Maybank_Logo.png" alt="Maybank">
+                            <span>Maybank</span>
+                        </div>
+                        <div class="payment-btn" @click="handlePayment('Bank Islam')">
+                            <img src="https://www.bankislam.com/wp-content/uploads/logo_bank_islam.png" alt="Bank Islam">
+                            <span>Bank Islam</span>
+                        </div>
+                        <div class="payment-btn" @click="handlePayment('TNG')">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Touch_%27n_Go_eWallet_logo.png" alt="TNG">
+                            <span>TNG</span>
+                        </div>
+                        <div class="payment-btn" @click="handlePayment('SPay')">
+                            <img src="https://spayglobal.my/img/logo-spayglobal.png" alt="SPay">
+                            <span>SPay</span>
+                        </div>
+                    </div>
+
+                    <button class="outline-btn" style="width:100%; margin-top: 20px;" @click="showCheckoutModal = false">Cancel</button>
                 </div>
             </div>
         </transition>
 
-        <!-- ================= 日历事件详情弹窗 ================= -->
+        <!-- ================= 🚨 第二步：新增的二维码扫描弹窗 ================= -->
         <transition name="page-fade">
-            <div class="checkout-modal-wrapper" v-if="showEventModal && selectedEvent">
-                <div class="checkout-modal">
-                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;"><i class="fas fa-calendar-check"></i> Event Details</h3>
-                    <div style="font-size: 1.1rem; margin-bottom: 20px;">
-                        <p style="margin-bottom: 10px;"><strong>Title:</strong> {{ selectedEvent.title }}</p>
-                        <p style="margin-bottom: 10px;"><strong>Date:</strong> {{ selectedEvent.event_date.split('T')[0] }}</p>
-                        <p style="margin-bottom: 10px;"><strong>Time:</strong> {{ selectedEvent.start_time.slice(0, 5) }} - {{ selectedEvent.end_time.slice(0, 5) }}</p>
+            <div class="checkout-modal-wrapper" v-if="showPaymentModal">
+                <div class="checkout-modal" style="text-align: center;">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Scan to Pay RM{{ cartTotal }}</h3>
+                    <p style="margin-bottom: 20px;">Paying via: <strong>{{ selectedPaymentMethod }}</strong></p>
+                    
+                    <!-- 🚨 根据选择显示不同的二维码图片 -->
+                    <div class="qr-container">
+                        <img v-if="selectedPaymentMethod === 'Maybank'" src="images/Maybank_qr.jpg" class="qr-code">
+                        <img v-if="selectedPaymentMethod === 'Bank Islam'" src="images/BankIslam_qr.jpg" class="qr-code">
+                        <img v-if="selectedPaymentMethod === 'TNG'" src="images/TNG_qr.jpg" class="qr-code">
+                        <img v-if="selectedPaymentMethod === 'SPay'" src="images/SPay_qr.jpg" class="qr-code">
                     </div>
                     
-                    <h4 style="margin-bottom: 5px; color: #333;">Description:</h4>
-                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; color:#555; min-height: 80px; margin-bottom: 20px;">
-                        {{ selectedEvent.details || 'No additional details provided for this event.' }}
-                    </div>
-                    
-                    <button class="outline-btn" style="width:100%; padding: 12px; font-size: 1.05rem; border-radius: 8px;" @click="showEventModal = false">Close</button>
+                    <!-- 🚨 确认支付按钮 (带入 CRUD 逻辑) -->
+                    <button class="submit-btn" style="width:100%; margin-top:20px; background:var(--brand-magenta);" @click="confirmPayment">
+                        Confirm I Have Paid
+                    </button>
+                    <button class="outline-btn" style="width:100%; margin-top:10px;" @click="showPaymentModal = false; showCheckoutModal = true;">Back</button>
                 </div>
             </div>
         </transition>

@@ -1,10 +1,9 @@
 // =================================================================
 //                 EduTech Platform - Frontend Logic
-//               (Vercel + Ngrok Deployment Ready)
 // =================================================================
 
 const { createApp } = Vue;
-// 🚨 已经替换为你固定的 Ngrok 域名 (修复了多余的分号)
+// 🚨 指向你固定的 Ngrok 域名
 const BACKEND_URL = 'https://juliette-unattempted-tammara.ngrok-free.dev';
 
 createApp({
@@ -16,21 +15,17 @@ createApp({
             showCheckoutModal: false,
             showAdminModal: false, 
             showAdminCreateModal: false, 
+            showPaymentModal: false, // 🚨 支付二维码弹窗开关
 
-            // --- 表单与暂存数据 (修复了重复定义和丢失的变量) ---
-            showItemModal: false,    
-            selectedItem: null,      
-            showEventModal: false,   
-            selectedEvent: null,     
-            isUploading: false,
+            // --- 表单与暂存数据 ---
+            selectedPaymentMethod: null, // 🚨 记录用户选了哪个 Bank/eWallet
             adminFormType: 'Book',
-            adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '' },
+            adminFormData: { title: '', price: '', img: '', extra: '', event_date: '', start_time: '', end_time: '' },
             loginForm: { email: '', password: '' },
             registerForm: { name: '', email: '', password: '' },
             checkoutForm: { address: '', country: '', shippingMethod: 'Ship' },
-            newAdminForm: { name: '', email: '', password: '' }, 
+            newAdminForm: { name: '', email: '', password: '' },
             selectedNews: null,
-            eventsData: [], 
             
             // --- 全局状态 ---
             currentUser: null, 
@@ -41,6 +36,7 @@ createApp({
             coursesData: [],
             resourcesData: [],
             newsData: [],
+            eventsData: [], 
             orders: [] 
         }
     },
@@ -56,7 +52,7 @@ createApp({
             const padding = [27, 28, 29, 30];
             padding.forEach(p => days.push({ dayNum: p, empty: true, events: [] }));
             
-            for(let i = 1; i <= 31; i++) {
+            for(let i=1; i<=31; i++) {
                 const dateStr = `2026-05-${String(i).padStart(2, '0')}`;
                 const dayEvents = this.eventsData.filter(e => {
                     return e.event_date && String(e.event_date).startsWith(dateStr);
@@ -70,23 +66,25 @@ createApp({
         }
     },
     methods: {
-        // 🚨 所有 fetch 都加上了 ngrok-skip-browser-warning 通行证
+        // ================= 数据拉取 =================
         async fetchAllData() {
             const headers = { 'ngrok-skip-browser-warning': 'true' };
             try {
                 const [booksRes, coursesRes, resourcesRes, newsRes, eventsRes] = await Promise.all([
-                    fetch(`${BACKEND_URL}/api/books`, { headers }), 
+                    fetch(`${BACKEND_URL}/api/books`, { headers }),
                     fetch(`${BACKEND_URL}/api/courses`, { headers }),
-                    fetch(`${BACKEND_URL}/api/resources`, { headers }), 
+                    fetch(`${BACKEND_URL}/api/resources`, { headers }),
                     fetch(`${BACKEND_URL}/api/news`, { headers }),
-                    fetch(`${BACKEND_URL}/api/events`, { headers }) 
+                    fetch(`${BACKEND_URL}/api/events`, { headers })
                 ]);
-                this.books = await booksRes.json(); 
+                this.books = await booksRes.json();
                 this.coursesData = await coursesRes.json();
-                this.resourcesData = await resourcesRes.json(); 
+                this.resourcesData = await resourcesRes.json();
                 this.newsData = await newsRes.json();
-                this.eventsData = await eventsRes.json(); 
-            } catch (error) { console.error("Fetch All Data Error:", error); }
+                this.eventsData = await eventsRes.json();
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
         },
         async fetchOrders() {
             if (!this.isAdmin) return;
@@ -99,74 +97,80 @@ createApp({
                 console.error("Error fetching orders:", error);
             }
         },
-        openEventModalForDate(dateStr) {
-            this.adminFormType = 'Event';
-            this.adminFormData = { 
-                title: '', price: '', img: '', category: '', duration: '', extra: '', 
-                event_date: dateStr, start_time: '09:00', end_time: '11:00' 
-            };
-            this.showAdminModal = true;
-        },
 
-        // --- 视图与交互 ---
+        // ================= 视图与购物车逻辑 =================
         changeView(viewName) {
             this.currentView = viewName;
             this.isCartOpen = false; 
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
         },
         toggleCart() { this.isCartOpen = !this.isCartOpen; },
-        addToCart(book) { this.cart.push(book); this.isCartOpen = true; },
+        
+        addToCart(item, type) {
+            const existingItem = this.cart.find(cartItem => cartItem.id === item.id && cartItem.type === type);
+            if (existingItem) {
+                alert(`${item.title} is already in your cart!`);
+                return;
+            }
+            this.cart.push({ ...item, type: type });
+            this.isCartOpen = true; 
+        },
         removeFromCart(index) { this.cart.splice(index, 1); },
         readFullStory(newsItem) {
             this.selectedNews = newsItem;
             this.changeView('news-detail');
         },
-        viewItemDetails(item) {
-            this.selectedItem = item;
-            this.showItemModal = true;
-        },
-        viewEventDetails(evt) {
-            this.selectedEvent = evt;
-            this.showEventModal = true;
+
+        // ================= 支付流程逻辑 (核心修改) =================
+        
+        // 1. 点击银行图标，记录支付方式并弹出二维码
+        handlePayment(method) {
+            this.selectedPaymentMethod = method;
+            this.showCheckoutModal = false; // 隐藏地址填写框
+            this.showPaymentModal = true;   // 显示二维码扫描框
         },
 
-        // --- 本地图片上传 ---
-        async handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        // 2. 点击“I Have Paid”按钮，触发最终下单请求
+        async confirmPayment() {
+            alert(`Payment confirmation received for ${this.selectedPaymentMethod}. Finalizing order...`);
+            await this.processCheckout(this.selectedPaymentMethod);
+        },
 
-            if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
-                alert('Invalid file format. Please upload PNG or JPEG only!');
-                event.target.value = ''; 
+        // 3. 最终的下单 API 调用 (已合并重复函数)
+        async processCheckout(paymentMethodUsed) {
+            if (!this.currentUser) {
+                alert("Please log in to complete your purchase!");
+                this.changeView('login');
                 return;
             }
-
-            this.isUploading = true;
-            const formData = new FormData();
-            formData.append('media', file);
-
             try {
-                const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                const response = await fetch(`${BACKEND_URL}/api/orders`, {
                     method: 'POST',
-                    headers: { 'ngrok-skip-browser-warning': 'true' },
-                    body: formData
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        userId: this.currentUser.id,
+                        cart: this.cart,
+                        shippingDetails: this.checkoutForm,
+                        paymentMethod: paymentMethodUsed // 🚨 关键：发送支付方式给后端记录
+                    })
                 });
-                
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.message || 'Upload failed');
+                if (!response.ok) throw new Error(data.message);
                 
-                this.adminFormData.img = BACKEND_URL + data.url; 
-                alert('Image uploaded successfully!');
-            } catch (error) {
-                console.error(error);
-                alert(`Upload error: ${error.message}`);
-                event.target.value = ''; 
-            } finally {
-                this.isUploading = false;
+                alert('Order placed successfully! Admin will verify your payment.');
+                this.cart = []; // 清空购物车
+                this.showPaymentModal = false; // 关闭二维码弹窗
+                this.isCartOpen = false;
+                this.fetchOrders(); // 如果是管理员，刷新订单列表
+            } catch(error) {
+                alert(`Order Failed: ${error.message}`);
             }
         },
 
-        // --- 认证流程 (Auth) ---
+        // ================= 认证流程 (Auth) =================
         async handleRegister() {
             if (!this.registerForm.email.trim().toLowerCase().endsWith('@gmail.com')) {
                 alert('Registration Failed: Strictly only @gmail.com addresses are allowed.');
@@ -219,42 +223,13 @@ createApp({
             this.changeView('home');
         },
 
-        // --- 订单与结算 ---
-        async processCheckout() {
-            if (!this.currentUser) {
-                alert("Please log in to complete your purchase!");
-                this.changeView('login');
-                return;
-            }
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/orders`, {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({
-                        userId: this.currentUser.id,
-                        cart: this.cart,
-                        shippingDetails: this.checkoutForm
-                    })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message);
-                
-                alert('Payment successful! Your order has been placed.');
-                this.cart = [];
-                this.showCheckoutModal = false;
-                this.isCartOpen = false;
-            } catch(error) {
-                alert(`Checkout Failed: ${error.message}`);
-            }
-        },
-
-        // --- 管理员 CRUD 操作 ---
+        // ================= 管理员 CRUD 操作 =================
         adminAdd(type) {
             if(type === 'courses') type = 'Course';
             if(type === 'resources') type = 'Resource';
             
             this.adminFormType = type;
-            this.adminFormData = { title: '', price: '', img: '', category: '', duration: '', extra: '' }; 
+            this.adminFormData = { title: '', price: '', img: '', extra: '', event_date: '', start_time: '', end_time: '' }; 
             this.showAdminModal = true;
         },
         async submitAdminForm() {
@@ -283,7 +258,7 @@ createApp({
             if(type === 'Item') {
                 type = this.currentView === 'courses' ? 'Course' : 'Resource';
             }
-            if(confirm(`WARNING: Are you sure you want to permanently delete this ${type} from the database?`)) {
+            if(confirm(`WARNING: Are you sure you want to permanently delete this ${type}?`)) {
                 try {
                     const response = await fetch(`${BACKEND_URL}/api/admin/delete/${type}/${id}`, {
                         method: 'DELETE',
@@ -318,6 +293,14 @@ createApp({
             } catch (error) {
                 alert(`Failed: ${error.message}`);
             }
+        },
+        openEventModalForDate(dateStr) {
+            this.adminFormType = 'Event';
+            this.adminFormData = { 
+                title: '', price: '', img: '', extra: '', 
+                event_date: dateStr, start_time: '09:00', end_time: '11:00' 
+            };
+            this.showAdminModal = true;
         }
     }
 }).mount('#app');
