@@ -200,14 +200,13 @@ createApp({
             const file = event.target.files[0];
             if (!file) return;
 
-            // 格式验证
             if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
                 alert('Invalid file format. Please upload PNG or JPEG only!');
-                event.target.value = ''; // 清空选择，防止重复上传错误文件
+                event.target.value = ''; 
                 return;
             }
 
-            this.isUploading = true; // 打开“上传中”的旋转图标
+            this.isUploading = true;
             const formData = new FormData();
             formData.append('media', file);
 
@@ -221,15 +220,16 @@ createApp({
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message || 'Upload failed');
                 
-                // 把后端返回的公网图片地址，存入表单
-                this.adminFormData.img = BACKEND_URL + data.url; 
+                // 🚨 核心：不再自己拼接，直接使用后端返回的完整公网 URL
+                this.adminFormData.img = data.url; 
+                
                 alert('Image uploaded successfully!');
             } catch (error) {
                 console.error(error);
                 alert(`Upload error: ${error.message}`);
-                event.target.value = ''; // 上传失败也清空
+                event.target.value = ''; 
             } finally {
-                this.isUploading = false; // 关闭旋转图标
+                this.isUploading = false;
             }
         },
         
