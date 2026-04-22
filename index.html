@@ -546,14 +546,13 @@
                         </div>
 
                         <div style="display:flex; gap:10px;" v-if="adminFormType === 'Resource'">
-                            <div class="form-group" style="flex:1;">
-                                <label>Category (Tag)</label>
-                                <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. VIDEO">
-                            </div>
-                            <div class="form-group" style="flex:1;">
-                                <label>Duration</label>
-                                <input type="text" v-model="adminFormData.duration" class="input-field" placeholder="e.g. 45 mins watch">
-                            </div>
+                            <!-- ... 这是你现有的 Resource category & duration 代码 ... -->
+                        </div>
+
+                        <!-- 🚨🚨🚨 新增：专门给 Course 和 Resource 添加的 Description 大输入框 🚨🚨🚨 -->
+                        <div class="form-group" v-if="adminFormType === 'Course' || adminFormType === 'Resource'">
+                            <label>Full Description</label>
+                            <textarea v-model="adminFormData.description" class="input-field" rows="4" placeholder="Enter detailed description here..."></textarea>
                         </div>
 
                         <div class="form-group" v-if="adminFormType === 'News'">

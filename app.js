@@ -20,7 +20,15 @@ createApp({
             // --- 表单与暂存数据 ---
             selectedPaymentMethod: null, // 🚨 记录用户选了哪个 Bank/eWallet
             adminFormType: 'Book',
-            adminFormData: { title: '', price: '', img: '', extra: '', event_date: '', start_time: '', end_time: '' },
+            adminAdd(type) {
+            if(type === 'courses') type = 'Course';
+            if(type === 'resources') type = 'Resource';
+            
+            this.adminFormType = type;
+            // 🚨 清空表单时，也把 description 清空
+            this.adminFormData = { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null }; 
+            this.showAdminModal = true;
+        },
             loginForm: { email: '', password: '' },
             registerForm: { name: '', email: '', password: '' },
             checkoutForm: { address: '', country: '', shippingMethod: 'Ship' },
