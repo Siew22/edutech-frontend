@@ -21,6 +21,7 @@ createApp({
             searchResults: [],
             isSearching: false,
             noResultsFound: false,
+            searchFilter: 'All', // 🚨 新增：记住当前搜索结果的过滤器
             courseFilter: 'All',
             resourceFilter: 'All',
             bookCategoryFilter: 'All',
@@ -157,6 +158,13 @@ createApp({
             if (this.bookCategoryFilter === 'All Categories') return this.books;
             return this.books.filter(b => b.category === this.bookCategoryFilter);
         },
+
+        filteredSearchResults() {
+            if (this.searchFilter === 'All') {
+                return this.searchResults;
+            }
+            return this.searchResults.filter(item => item.type === this.searchFilter);
+        },
         
         isAdmin() {
             return this.currentUser && this.currentUser.role === 'admin';
@@ -199,6 +207,7 @@ createApp({
             this.isSearching = true;
             this.noResultsFound = false;
             this.searchResults = [];
+            this.searchFilter = 'All'; // 🚨 关键：每次新搜索都重置过滤器
 
             try {
                 const response = await fetch(`${BACKEND_URL}/api/search?q=${this.searchQuery}`, {
@@ -216,6 +225,10 @@ createApp({
             } finally {
                 this.isSearching = false;
             }
+        },
+
+        setSearchFilter(filter) {
+            this.searchFilter = filter;
         },
 
         // 点击搜索结果后，跳转到对应的页面
