@@ -244,3 +244,43 @@ select.input-field { appearance: auto; cursor: pointer; }
     border-radius: 12px;
     box-shadow: var(--shadow-sm);
 }
+/* 支付方式按钮组布局 */
+.payment-options {
+    display: grid;
+    grid-template-columns: 1fr; /* 垂直排列，更好看 */
+    gap: 12px;
+}
+
+/* 支付方式按钮样式 */
+.payment-item-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 15px;
+    background-color: white;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.payment-item-btn i {
+    font-size: 1.2rem;
+    color: var(--brand-magenta); /* 图标使用主题色 */
+}
+
+.payment-item-btn:hover {
+    border-color: var(--brand-magenta);
+    background-color: #fdf5f9;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* 针对选中的按钮可以加一个激活态（可选） */
+.payment-item-btn:active {
+    transform: scale(0.98);
+}

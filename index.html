@@ -556,22 +556,25 @@
                     <!-- 🚨 新增：支付方式选择 (这里调用 handlePayment 方法) -->
                     <h4 style="margin-bottom:15px; color:#333;">Select Payment Method</h4>
                     <div class="payment-options">
-                        <div class="payment-btn" @click="handlePayment('Maybank')">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Maybank_Logo.png" alt="Maybank">
-                            <span>Maybank</span>
-                        </div>
-                        <div class="payment-btn" @click="handlePayment('Bank Islam')">
-                            <img src="https://www.bankislam.com/wp-content/uploads/logo_bank_islam.png" alt="Bank Islam">
-                            <span>Bank Islam</span>
-                        </div>
-                        <div class="payment-btn" @click="handlePayment('TNG')">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Touch_%27n_Go_eWallet_logo.png" alt="TNG">
-                            <span>TNG</span>
-                        </div>
-                        <div class="payment-btn" @click="handlePayment('SPay')">
-                            <img src="https://spayglobal.my/img/logo-spayglobal.png" alt="SPay">
-                            <span>SPay</span>
-                        </div>
+                        <!-- Maybank 按钮 -->
+                        <button type="button" class="payment-item-btn" @click="handlePayment('Maybank')">
+                            <i class="fas fa-university"></i> Maybank (DuitNow)
+                        </button>
+                        
+                        <!-- Bank Islam 按钮 -->
+                        <button type="button" class="payment-item-btn" @click="handlePayment('Bank Islam')">
+                            <i class="fas fa-mosque"></i> Bank Islam
+                        </button>
+                        
+                        <!-- TNG 按钮 -->
+                        <button type="button" class="payment-item-btn" @click="handlePayment('TNG')">
+                            <i class="fas fa-wallet"></i> Touch 'n Go eWallet
+                        </button>
+                        
+                        <!-- SPay 按钮 -->
+                        <button type="button" class="payment-item-btn" @click="handlePayment('SPay')">
+                            <i class="fas fa-mobile-alt"></i> SPay Global
+                        </button>
                     </div>
 
                     <button class="outline-btn" style="width:100%; margin-top: 20px;" @click="showCheckoutModal = false">Cancel</button>
