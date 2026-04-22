@@ -497,13 +497,13 @@
                     
                     <template v-if="adminFormType !== 'Event'">
                         
-                        <!-- 🚨 修复 1：让 Book, Course 和 Resource 都能输入价格 -->
+                        <!-- 价格 (Book, Course, Resource) -->
                         <div class="form-group" v-if="adminFormType === 'Book' || adminFormType === 'Course' || adminFormType === 'Resource'">
                             <label>Price (RM) - Leave 0 for Free</label>
                             <input type="number" v-model="adminFormData.price" class="input-field" placeholder="0.00" step="0.01">
                         </div>
 
-                        <!-- 🚨 修复 2：加入在线图片链接框（规避 Ngrok 的拦截） -->
+                        <!-- 图片上传框 -->
                         <div class="form-group">
                             <label>Image URL (Required - Paste an online image link)</label>
                             <input type="text" v-model="adminFormData.img" class="input-field" placeholder="https://images.unsplash.com/...">
@@ -520,11 +520,13 @@
                             </div>
                         </div>
                         
+                        <!-- 🚨 书籍专有：Category -->
                         <div class="form-group" v-if="adminFormType === 'Book'">
                             <label>Category</label>
                             <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. Music Theory">
                         </div>
 
+                        <!-- 🚨 课程专有：Category 下拉框 + Duration -->
                         <div style="display:flex; gap:10px;" v-if="adminFormType === 'Course'">
                             <div class="form-group" style="flex:1;">
                                 <label>Category</label>
@@ -545,16 +547,25 @@
                             </div>
                         </div>
 
+                        <!-- 🚨 资源专有：Category 文本框 + Duration (这就帮你找回来了！) -->
                         <div style="display:flex; gap:10px;" v-if="adminFormType === 'Resource'">
-                            <!-- ... 这是你现有的 Resource category & duration 代码 ... -->
+                            <div class="form-group" style="flex:1;">
+                                <label>Category (Tag)</label>
+                                <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. VIDEO">
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Duration</label>
+                                <input type="text" v-model="adminFormData.duration" class="input-field" placeholder="e.g. 45 mins watch">
+                            </div>
                         </div>
 
-                        <!-- 🚨🚨🚨 新增：专门给 Course 和 Resource 添加的 Description 大输入框 🚨🚨🚨 -->
+                        <!-- 🚨 刚刚加上的：Course 和 Resource 专用的 Full Description 大文本框 -->
                         <div class="form-group" v-if="adminFormType === 'Course' || adminFormType === 'Resource'">
                             <label>Full Description</label>
                             <textarea v-model="adminFormData.description" class="input-field" rows="4" placeholder="Enter detailed description here..."></textarea>
                         </div>
 
+                        <!-- 新闻专有：短描述 -->
                         <div class="form-group" v-if="adminFormType === 'News'">
                             <label>Short Excerpt</label>
                             <input type="text" v-model="adminFormData.extra" class="input-field" placeholder="Brief summary...">
