@@ -86,7 +86,14 @@ ul { list-style: none; }
 .list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
 .list-card { background: white; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; transition: transform 0.3s; }
 .list-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
-.card-img { height: 180px; background-size: cover; background-position: center; position: relative; }
+.card-img {
+    height: 180px;
+    background-size: cover;      /* 🚨 核心：图片自动拉伸铺满 */
+    background-position: center; /* 🚨 核心：居中显示 */
+    background-repeat: no-repeat;
+    position: relative;
+    background-color: #eee;      /* 如果没图，显示灰色底 */
+}
 .card-img .tag { position: absolute; top: 15px; left: 15px; background: var(--brand-magenta); color: white; font-size: 0.75rem; font-weight: 700; padding: 5px 10px; border-radius: 4px; }
 .card-body { padding: 20px; }
 .card-body h4 { font-size: 1.1rem; margin-bottom: 10px; }

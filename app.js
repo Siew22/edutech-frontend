@@ -348,7 +348,10 @@ createApp({
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/add`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' // 🚨 关键：跳过Ngrok警告
+                    },
                     body: JSON.stringify({
                         type: this.adminFormType,
                         ...this.adminFormData
@@ -358,8 +361,11 @@ createApp({
                 if (!response.ok) throw new Error(data.message);
                 
                 alert(data.message); 
-                this.showAdminModal = false;
-                this.fetchAllData();
+                this.showAdminModal = false; // 关弹窗
+                
+                // 🚨 实时核心：立刻重新从数据库拉取最新数据，页面会瞬间刷出新内容！
+                await this.fetchAllData(); 
+                
             } catch (error) {
                 alert(`Error: ${error.message}`);
             }
