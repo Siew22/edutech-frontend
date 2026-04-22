@@ -130,11 +130,9 @@
                             </p>
                         </div>
                         <div class="calendar-ui">
-                            <!-- 🚨 修改：绑定了 @click 和 {{ calendarHeaderTitle }} -->
-                             <div class="calendar-header">
+                            <div class="calendar-header">
                                 <button class="icon-btn" style="color:#333;" @click="prevMonth"><i class="fas fa-chevron-left"></i></button>
                                 <h3 style="min-width: 150px; text-align: center;">{{ calendarHeaderTitle }}</h3>
-                                
                                 <button class="icon-btn" style="color:#333;" @click="nextMonth"><i class="fas fa-chevron-right"></i></button>
                             </div>
                             <div class="calendar-grid">
@@ -174,16 +172,10 @@
                                     <p class="duration"><i class="far fa-clock"></i> {{ item.duration }}</p>
                                     <p class="price">{{ item.price === 0 ? 'Free' : 'RM' + item.price }}</p>
                                     
-                                    <!-- 1. 查看详情按钮 (保持原样) -->
                                      <button class="outline-btn" @click="viewItemDetails(item)">More details</button>
-    
-                                     <!-- 2. 🚨 新增：学生注册/购买按钮 (点击后进入购物车) -->
-                                      <!-- 我们给它加上 add-cart-btn 类名，这样它就会变成漂亮的紫红色 -->
-                                       <button class="add-cart-btn" style="width: 100%; margin-top: 10px;" @click="addToCart(item, 'course')">
+                                     <button class="add-cart-btn" style="width: 100%; margin-top: 10px;" @click="addToCart(item, 'course')">
                                         <i class="fas fa-plus"></i> Register Course
                                     </button>
-                                    
-                                    <!-- 3. 管理员删除按钮 (保持原样) -->
                                      <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('Item', item.id)" style="margin-top: 5px;">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>
@@ -208,7 +200,7 @@
                                     <span class="category">{{ book.category }}</span>
                                     <h4>{{ book.title }}</h4>
                                     <p class="price">RM{{ book.price }}</p>
-                                    <button class="add-cart-btn" @click="addToCart(book)"><i class="fas fa-plus"></i> Add to Cart</button>
+                                    <button class="add-cart-btn" @click="addToCart(book, 'book')"><i class="fas fa-plus"></i> Add to Cart</button>
                                     <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('Book', book.id)"><i class="fas fa-trash"></i> Delete Book</button>
                                 </div>
                             </div>
@@ -365,18 +357,20 @@
         </transition>
         <div class="overlay" v-if="isCartOpen" @click="toggleCart"></div>
 
-        <!-- ================= 结账弹窗 ================= -->
+        <!-- ================= 结账弹窗 (第一步：填地址 + 选支付方式) ================= -->
         <transition name="page-fade">
             <div class="checkout-modal-wrapper" v-if="showCheckoutModal">
                 <div class="checkout-modal">
-                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Checkout</h3>
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Shipping & Payment</h3>
+                    
+                    <!-- 地址和国家 -->
                     <div class="form-group">
                         <label>Delivery Address</label>
                         <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="123 Main St">
                     </div>
                     <div class="form-group">
                         <label>Country</label>
-                        <input type="text" v-model="checkoutForm.country" class="input-field" placeholder="United Kingdom">
+                        <input type="text" v-model="checkoutForm.country" class="input-field" placeholder="Malaysia">
                     </div>
                     <div class="form-group">
                         <label>Shipping Method</label>
@@ -385,10 +379,49 @@
                             <option value="Plane">Express Plane</option>
                         </select>
                     </div>
-                    <div style="display:flex; gap:10px; margin-top:20px;">
-                        <button class="outline-btn" style="flex:1;" @click="showCheckoutModal = false">Cancel</button>
-                        <button class="submit-btn" style="flex:1; background-color: var(--brand-magenta); border:none; color:white; font-weight:bold; cursor:pointer;" @click="processCheckout">Pay RM{{ cartTotal }}</button>
+
+                    <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;">
+                    
+                    <!-- 支付方式选择 -->
+                    <h4 style="margin-bottom:15px; color:#333;">Select Payment Method</h4>
+                    <div class="payment-options">
+                        <button type="button" class="payment-item-btn" @click="handlePayment('Maybank')">
+                            <i class="fas fa-university"></i> Maybank (DuitNow)
+                        </button>
+                        <button type="button" class="payment-item-btn" @click="handlePayment('Bank Islam')">
+                            <i class="fas fa-mosque"></i> Bank Islam
+                        </button>
+                        <button type="button" class="payment-item-btn" @click="handlePayment('TNG')">
+                            <i class="fas fa-wallet"></i> Touch 'n Go eWallet
+                        </button>
+                        <button type="button" class="payment-item-btn" @click="handlePayment('SPay')">
+                            <i class="fas fa-mobile-alt"></i> SPay Global
+                        </button>
                     </div>
+
+                    <button class="outline-btn" style="width:100%; margin-top: 20px;" @click="showCheckoutModal = false">Cancel</button>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ================= 第二步：二维码扫描弹窗 ================= -->
+        <transition name="page-fade">
+            <div class="checkout-modal-wrapper" v-if="showPaymentModal">
+                <div class="checkout-modal" style="text-align: center;">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Scan to Pay RM{{ cartTotal }}</h3>
+                    <p style="margin-bottom: 20px;">Paying via: <strong>{{ selectedPaymentMethod }}</strong></p>
+                    
+                     <div class="qr-container">
+                        <img v-if="selectedPaymentMethod === 'Maybank'" src="images/maybank_qr.jpg" class="qr-code">
+                        <img v-if="selectedPaymentMethod === 'Bank Islam'" src="images/bankislam_qr.jpg" class="qr-code">
+                        <img v-if="selectedPaymentMethod === 'TNG'" src="images/tng_qr.jpg" class="qr-code">
+                        <img v-if="selectedPaymentMethod === 'SPay'" src="images/spay_qr.jpg" class="qr-code">
+                    </div>
+                    
+                    <button class="submit-btn" style="width:100%; margin-top:20px; background:var(--brand-magenta);" @click="confirmPayment">
+                        Confirm I Have Paid
+                    </button>
+                    <button class="outline-btn" style="width:100%; margin-top:10px;" @click="showPaymentModal = false; showCheckoutModal = true;">Back</button>
                 </div>
             </div>
         </transition>
@@ -410,34 +443,26 @@
                             <input type="number" v-model="adminFormData.price" class="input-field" placeholder="0.00" step="0.01">
                         </div>
 
-                        <!-- 🚨 优化为：本地文件上传 -->
                         <div class="form-group">
                             <label>Upload Image (PNG/JPEG)</label>
                             <input type="file" class="input-field" accept="image/png, image/jpeg, image/jpg" @change="handleImageUpload" :disabled="isUploading">
-                            
-                            <!-- 上传中的文字提示 -->
                             <div v-if="isUploading" style="color: var(--brand-magenta); font-weight: bold; font-size: 0.9rem; margin-top: 5px;">
                                 <i class="fas fa-spinner fa-spin"></i> Uploading... Please wait.
                             </div>
-                            
-                            <!-- 上传成功后显示一个小小的图片预览 -->
                             <div v-if="adminFormData.img && !isUploading" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
                                 <span style="color: green; font-size: 0.9rem; font-weight: bold;"><i class="fas fa-check-circle"></i> Uploaded!</span>
                                 <img :src="adminFormData.img" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                         </div>
                         
-                        <!-- 🚨 书籍 (Book)：只有 Category (分类) -->
                         <div class="form-group" v-if="adminFormType === 'Book'">
                             <label>Category</label>
                             <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. Music Theory">
                         </div>
 
-                        <!-- 🚨 课程 (Course)：下拉选择 Category + 输入 Duration -->
                         <div style="display:flex; gap:10px;" v-if="adminFormType === 'Course'">
                             <div class="form-group" style="flex:1;">
                                 <label>Category</label>
-                                <!-- 限定选项的下拉菜单 -->
                                 <select v-model="adminFormData.category" class="input-field">
                                     <option value="" disabled>Select Category...</option>
                                     <option value="Degree">Degree</option>
@@ -455,7 +480,6 @@
                             </div>
                         </div>
 
-                        <!-- 🚨 资源 (Resource)：输入 Category + 输入 Duration -->
                         <div style="display:flex; gap:10px;" v-if="adminFormType === 'Resource'">
                             <div class="form-group" style="flex:1;">
                                 <label>Category (Tag)</label>
@@ -467,7 +491,6 @@
                             </div>
                         </div>
 
-                        <!-- 新闻 (News)：只需要简短说明 (Excerpt) -->
                         <div class="form-group" v-if="adminFormType === 'News'">
                             <label>Short Excerpt</label>
                             <input type="text" v-model="adminFormData.extra" class="input-field" placeholder="Brief summary...">
@@ -530,84 +553,6 @@
             </div>
         </transition>
 
-        <!-- ================= 结账弹窗 (第一步：填地址 + 选支付方式) ================= -->
-        <transition name="page-fade">
-            <div class="checkout-modal-wrapper" v-if="showCheckoutModal">
-                <div class="checkout-modal">
-                    <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Shipping & Payment</h3>
-                    
-                    <!-- 地址和国家 -->
-                    <div class="form-group">
-                        <label>Delivery Address</label>
-                        <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="123 Main St">
-                    </div>
-                    <div class="form-group">
-                        <label>Country</label>
-                        <input type="text" v-model="checkoutForm.country" class="input-field" placeholder="Malaysia">
-                    </div>
-                    <div class="form-group">
-                        <label>Shipping Method</label>
-                        <select v-model="checkoutForm.shippingMethod" class="input-field">
-                            <option value="Ship">Standard Ship</option>
-                            <option value="Plane">Express Plane</option>
-                        </select>
-                    </div>
-
-                    <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;">
-                    
-                    <!-- 🚨 新增：支付方式选择 (这里调用 handlePayment 方法) -->
-                    <h4 style="margin-bottom:15px; color:#333;">Select Payment Method</h4>
-                    <div class="payment-options">
-                        <!-- Maybank 按钮 -->
-                        <button type="button" class="payment-item-btn" @click="handlePayment('Maybank')">
-                            <i class="fas fa-university"></i> Maybank (DuitNow)
-                        </button>
-                        
-                        <!-- Bank Islam 按钮 -->
-                        <button type="button" class="payment-item-btn" @click="handlePayment('Bank Islam')">
-                            <i class="fas fa-mosque"></i> Bank Islam
-                        </button>
-                        
-                        <!-- TNG 按钮 -->
-                        <button type="button" class="payment-item-btn" @click="handlePayment('TNG')">
-                            <i class="fas fa-wallet"></i> Touch 'n Go eWallet
-                        </button>
-                        
-                        <!-- SPay 按钮 -->
-                        <button type="button" class="payment-item-btn" @click="handlePayment('SPay')">
-                            <i class="fas fa-mobile-alt"></i> SPay Global
-                        </button>
-                    </div>
-
-                    <button class="outline-btn" style="width:100%; margin-top: 20px;" @click="showCheckoutModal = false">Cancel</button>
-                </div>
-            </div>
-        </transition>
-
-        <!-- ================= 🚨 第二步：新增的二维码扫描弹窗 ================= -->
-        <transition name="page-fade">
-            <div class="checkout-modal-wrapper" v-if="showPaymentModal">
-                <div class="checkout-modal" style="text-align: center;">
-                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Scan to Pay RM{{ cartTotal }}</h3>
-                    <p style="margin-bottom: 20px;">Paying via: <strong>{{ selectedPaymentMethod }}</strong></p>
-                    
-                    <!-- 🚨 注意：这里必须加上 images/ 前缀，因为你的图片在文件夹里 -->
-                     <div class="qr-container">
-                        <img v-if="selectedPaymentMethod === 'Maybank'" src="images/maybank_qr.jpg" class="qr-code">
-                        <img v-if="selectedPaymentMethod === 'Bank Islam'" src="images/bankislam_qr.jpg" class="qr-code">
-                        <img v-if="selectedPaymentMethod === 'TNG'" src="images/tng_qr.jpg" class="qr-code">
-                        <img v-if="selectedPaymentMethod === 'SPay'" src="images/spay_qr.jpg" class="qr-code">
-                    </div>
-                    
-                    <!-- 🚨 确认支付按钮 (带入 CRUD 逻辑) -->
-                    <button class="submit-btn" style="width:100%; margin-top:20px; background:var(--brand-magenta);" @click="confirmPayment">
-                        Confirm I Have Paid
-                    </button>
-                    <button class="outline-btn" style="width:100%; margin-top:10px;" @click="showPaymentModal = false; showCheckoutModal = true;">Back</button>
-                </div>
-            </div>
-        </transition>
-
         <!-- ================= 课程/资源详情弹窗 (More Details) ================= -->
         <transition name="page-fade">
             <div class="checkout-modal-wrapper" v-if="showItemModal && selectedItem">
@@ -638,7 +583,7 @@
                         <button class="outline-btn" style="flex: 1; padding: 12px; border-radius: 8px;" @click="showItemModal = false">Close</button>
                         
                         <!-- 弹窗里也可以直接注册/购买！ -->
-                        <button class="submit-btn" style="flex: 1; background: var(--brand-magenta); border-radius: 8px;" @click="addToCart(selectedItem, 'course'); showItemModal = false;">
+                        <button class="submit-btn" style="flex: 1; background: var(--brand-magenta); border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer;" @click="addToCart(selectedItem, 'course'); showItemModal = false;">
                             <i class="fas fa-plus"></i> Register Now
                         </button>
                     </div>
@@ -646,7 +591,7 @@
             </div>
         </transition>
 
-        <!-- 🚨 确保你粘贴的位置在下面这两行的上方！ -->
     </div>
     <script src="app.js"></script>
 </body>
+</html>
