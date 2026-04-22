@@ -54,7 +54,25 @@ createApp({
             resourcesData: [],
             newsData: [],
             eventsData: [], 
+            messages:[],
+            newForumMessage: '',
+            pollingTimer: null, // 🚨 用来存定时器的变量
             orders: [] 
+        }
+    },
+
+    watch: {
+        // 🚨 智能监听：进论坛就开始 3秒刷一次，离开就停止！
+        currentView(newVal) {
+            if (newVal === 'forum') {
+                this.fetchMessages();
+                this.pollingTimer = setInterval(this.fetchMessages, 3000); // 每3秒向后端拉取一次最新消息
+            } else {
+                if (this.pollingTimer) {
+                    clearInterval(this.pollingTimer);
+                    this.pollingTimer = null;
+                }
+            }
         }
     },
     mounted() {
@@ -214,6 +232,39 @@ createApp({
         readFullStory(newsItem) {
             this.selectedNews = newsItem;
             this.changeView('news-detail');
+        },
+
+        // ================= 论坛逻辑 =================
+        async fetchMessages() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/messages`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                this.messages = await res.json();
+                this.scrollToBottom();
+            } catch (e) { console.error(e); }
+        },
+        async sendForumMessage() {
+            if (!this.currentUser) {
+                alert("Please log in to chat!");
+                this.changeView('login');
+                return;
+            }
+            if (!this.newForumMessage.trim()) return;
+
+            try {
+                await fetch(`${BACKEND_URL}/api/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ userName: this.currentUser.name, message: this.newForumMessage.trim() })
+                });
+                this.newForumMessage = ''; // 清空输入框
+                this.fetchMessages(); // 发送完立刻自己拉取一次，瞬间上墙
+            } catch (e) { console.error(e); }
+        },
+        scrollToBottom() {
+            setTimeout(() => {
+                const box = document.getElementById('chat-box');
+                if(box) box.scrollTop = box.scrollHeight;
+            }, 100);
         },
 
         // 🚨 修复：补回点击 More Details 唤醒弹窗的方法！
