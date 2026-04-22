@@ -438,3 +438,59 @@ select.input-field { appearance: auto; cursor: pointer; }
     gap: 10px;
     margin-bottom: 25px;
 }
+/* --- 搜索弹窗内的过滤器按钮美化 --- */
+.search-modal-content .filter-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    padding: 5px;
+}
+
+/* 按钮基础样式：胶囊形状 */
+.search-modal-content .filter-btn {
+    background-color: #f1f1f1; /* 默认浅灰色背景 */
+    color: #555;
+    border: 2px solid transparent; /* 隐藏边框 */
+    padding: 8px 20px;
+    border-radius: 30px; /* 胶囊圆角 */
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* 丝滑动画 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* 悬停效果：稍微加深一点点 */
+.search-modal-content .filter-btn:hover {
+    background-color: #e2e2e2;
+    transform: translateY(-1px); /* 悬浮感 */
+}
+
+/* 🚨 核心重点：激活状态（点中后）的样式 */
+.search-modal-content .filter-btn.active {
+    background-color: var(--brand-magenta); /* 变成品牌洋红色 */
+    color: white; /* 文字变白 */
+    box-shadow: 0 4px 12px rgba(158, 0, 93, 0.3); /* 增加一点洋红色的发光阴影 */
+    transform: scale(1.05); /* 稍微变大一点点点 */
+}
+
+/* 搜索结果项的微调 */
+.search-result-item {
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid transparent;
+}
+
+.search-result-item:hover {
+    border-color: #eee;
+    background-color: #fcfcfc;
+}
+
+/* 给结果里的 Badge 也美化一下 */
+.result-type-badge {
+    padding: 4px 12px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
