@@ -516,6 +516,7 @@
                             </div>
                             <div v-if="adminFormData.img && !isUploading" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
                                 <span style="color: green; font-size: 0.9rem; font-weight: bold;"><i class="fas fa-check-circle"></i> Image Ready!</span>
+                                <img :src="adminFormData.previewImg || adminFormData.img" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                         </div>
                         

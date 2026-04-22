@@ -120,14 +120,40 @@ createApp({
                     fetch(`${BACKEND_URL}/api/news`, { headers }),
                     fetch(`${BACKEND_URL}/api/events`, { headers })
                 ]);
-                this.books = await booksRes.json();
-                this.coursesData = await coursesRes.json();
-                this.resourcesData = await resourcesRes.json();
-                this.newsData = await newsRes.json();
+                
+                const books = await booksRes.json();
+                const courses = await coursesRes.json();
+                const resources = await resourcesRes.json();
+                const news = await newsRes.json();
                 this.eventsData = await eventsRes.json();
+
+                // 🚨 神奇的魔法：批量将 Ngrok 图片转换为本地 Blob 缓存，彻底绕过拦截！
+                this.books = await this.convertImages(books, 'cover_image_url');
+                this.coursesData = await this.convertImages(courses, 'img');
+                this.resourcesData = await this.convertImages(resources, 'img');
+                this.newsData = await this.convertImages(news, 'img');
+
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
+        },
+
+        // 🚨 新增：处理图片的辅助函数 (瞒天过海)
+        async convertImages(arr, imgKey) {
+            return await Promise.all(arr.map(async item => {
+                const url = item[imgKey];
+                // 只有当图片是我们的 ngrok 链接时，才使用通行证去下载
+                if (url && url.includes('ngrok-free.dev')) {
+                    try {
+                        const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                        if (res.ok) {
+                            const blob = await res.blob();
+                            item[imgKey] = URL.createObjectURL(blob); // 替换成不会被拦截的本地 Blob 链接
+                        }
+                    } catch(e) { console.error("Image load error", e); }
+                }
+                return item;
+            }));
         },
         async fetchOrders() {
             if (!this.isAdmin) return;
@@ -222,6 +248,8 @@ createApp({
                 
                 // 🚨 核心：不再自己拼接，直接使用后端返回的完整公网 URL
                 this.adminFormData.img = data.url; 
+                // 🚨 核心：为了立刻在框框里看到，使用刚选中的本地文件生成预览
+                this.adminFormData.previewImg = URL.createObjectURL(file);
                 
                 alert('Image uploaded successfully!');
             } catch (error) {
