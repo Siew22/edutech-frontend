@@ -481,6 +481,13 @@ createApp({
             if (!this.newAdminForm.name || !this.newAdminForm.email || !this.newAdminForm.password) {
                 return alert("Please fill all fields!");
             }
+
+            // 🚨🚨🚨 新增防线：严格限制管理员邮箱必须是 @edutech.com
+            const adminEmail = this.newAdminForm.email.trim().toLowerCase();
+            if (!adminEmail.endsWith('@edutech.com')) {
+                return alert("Security Alert: Administrator emails MUST end with @edutech.com!");
+            }
+
             try {
                 const response = await fetch(`${BACKEND_URL}/api/admin/create`, {
                     method: 'POST',
