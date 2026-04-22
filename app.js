@@ -28,6 +28,8 @@ createApp({
             selectedNews: null,
             showItemModal: false,
             selectedItem: null,
+            showEventModal: false,   // 🚨 控制事件弹窗的开关
+            selectedEvent: null,     // 🚨 记录当前点击的是哪个事件
             
             // --- 全局状态 ---
             // 🚨 新增：用于控制日历的当前显示的月份和年份
@@ -183,6 +185,11 @@ createApp({
         viewItemDetails(item) {
             this.selectedItem = item;    // 记录你点的是哪个课程
             this.showItemModal = true;   // 打开弹窗
+        },
+
+        viewEventDetails(evt) {
+            this.selectedEvent = evt;      // 把点击的事件数据存起来
+            this.showEventModal = true;    // 打开事件详情弹窗
         },
 
         // ================= 支付流程逻辑 (核心修改) =================
