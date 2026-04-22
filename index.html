@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduTech Hub - Professional Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo" @click="changeView('home')" style="cursor:pointer;">
+                    <h1>EduTech</h1>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#" :class="{ active: currentView === 'home' }" @click.prevent="changeView('home')">Home</a></li>
+                    <li><a href="#" :class="{ active: currentView === 'calendar' }" @click.prevent="changeView('calendar')">Calendar</a></li>
+                    <li><a href="#" :class="{ active: currentView === 'resources' }" @click.prevent="changeView('resources')">Resources</a></li>
+                    <li><a href="#" :class="{ active: currentView === 'courses' }" @click.prevent="changeView('courses')">Courses</a></li>
+                    <li><a href="#" :class="{ active: currentView === 'bookstore' }" @click.prevent="changeView('bookstore')">Bookstore</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <!-- 如果是 Admin，显示进入后台的按钮 -->
+                    <button class="icon-btn" v-if="isAdmin" @click="changeView('admin-dashboard')" title="Admin Dashboard" style="color: #ffeb3b;"><i class="fas fa-user-shield"></i> Dashboard</button>
+                    
+                    <button class="icon-btn"><i class="fas fa-search"></i></button>
+                    <div class="cart-wrapper" @click="toggleCart">
+                        <button class="icon-btn"><i class="fas fa-shopping-cart"></i></button>
+                        <span class="cart-badge" v-if="cart.length > 0">{{ cart.length }}</span>
+                    </div>
+
+                    <!-- 登录/登出状态切换 -->
+                    <div v-if="currentUser" class="user-profile">
+                        <span style="font-weight:600; font-size:0.9rem; margin-right:10px;">Hi, {{ currentUser.name }}</span>
+                        <button class="login-btn" style="border-color:#ff3b30; color:#ff3b30;" @click="logout">Logout</button>
+                    </div>
+                    <button v-else class="login-btn" @click="changeView('login')">Log in</button>
+                </div>
+            </div>
+        </nav>
+
+        <transition name="page-fade" mode="out-in">
+            <main :key="currentView">
+
+                <!-- 1. HOME VIEW -->
+                <div v-if="currentView === 'home'">
+                    <header class="hero-section">
+                        <div class="hero-content">
+                            <h1 class="hero-title">The Student Hub</h1>
+                            <p class="hero-subtitle">A space to inspire and support all kinds of learners, from classroom to online portal.</p>
+                            <button class="cta-btn" @click="changeView('signup')">Sign up for free</button>
+                        </div>
+                        <div class="hero-image">
+                            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Students">
+                        </div>
+                    </header>
+                    <section class="features-section">
+                        <div class="feature-box">
+                            <div class="feature-icon"><i class="fas fa-book-open"></i></div>
+                            <h3>Resources</h3>
+                            <p>Discover valuable academic resources for both you and your peers.</p>
+                            <a href="#" class="feature-link" @click.prevent="changeView('resources')">GO <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon"><i class="fas fa-laptop-code"></i></div>
+                            <h3>Courses</h3>
+                            <p>Develop your academic skills with our university accredited courses.</p>
+                            <a href="#" class="feature-link" @click.prevent="changeView('courses')">GO <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="feature-box">
+                            <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <h3>Events & Calendar</h3>
+                            <p>Browse our online peer-to-peer interaction and face-to-face events!</p>
+                            <a href="#" class="feature-link" @click.prevent="changeView('calendar')">GO <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- 2. LOGIN / SIGNUP VIEW -->
+                <div v-else-if="currentView === 'login' || currentView === 'signup'" class="auth-page">
+                    <div class="auth-container">
+                        <div class="auth-image">
+                            <img src="https://images.unsplash.com/photo-1513258496099-48168024aec0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Learn">
+                        </div>
+                        <div class="auth-form-box">
+                            <h2>{{ currentView === 'login' ? 'Welcome Back' : 'Create an Account' }}</h2>
+                            <p class="auth-sub">{{ currentView === 'login' ? 'Log in to access your dashboard' : 'Join EduTech to start learning' }}</p>
+                            
+                            <form @submit.prevent>
+                                <div class="form-group" v-if="currentView === 'signup'">
+                                    <label>Full Name</label>
+                                    <input type="text" v-model="registerForm.name" placeholder="e.g. John Doe" class="input-field">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Email Address</label>
+                                    <input v-if="currentView === 'login'" type="email" v-model="loginForm.email" placeholder="Enter your email" class="input-field">
+                                    <input v-if="currentView === 'signup'" type="email" v-model="registerForm.email" placeholder="Enter your gmail" class="input-field">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input v-if="currentView === 'login'" type="password" v-model="loginForm.password" placeholder="Enter your password" class="input-field">
+                                    <input v-if="currentView === 'signup'" type="password" v-model="registerForm.password" placeholder="Create a password" class="input-field">
+                                </div>
+                                
+                                <button v-if="currentView === 'login'" class="submit-btn auth-submit" @click="handleLogin">Log In</button>
+                                <button v-if="currentView === 'signup'" class="submit-btn auth-submit" @click="handleRegister">Register as Student</button>
+                            </form>
+                            
+                            <p class="auth-switch" v-if="currentView === 'login'">Don't have an account? <a href="#" @click.prevent="changeView('signup')">Sign up</a></p>
+                            <p class="auth-switch" v-else>Already have an account? <a href="#" @click.prevent="changeView('login')">Log in</a></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. CALENDAR VIEW -->
+                <div v-else-if="currentView === 'calendar'" class="page-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Academic Calendar</h2>
+                            <p>Plan your semester, track exam dates and join our interactive events.</p>
+                            <p v-if="isAdmin" style="color: var(--brand-magenta); font-weight: bold; margin-top: 10px;">
+                                <i class="fas fa-hand-pointer"></i> Admin: Click on any date below to add an event.
+                            </p>
+                        </div>
+                        <div class="calendar-ui">
+                            <div class="calendar-header">
+                                <button class="icon-btn" style="color:#333;"><i class="fas fa-chevron-left"></i></button>
+                                <h3>May 2026</h3>
+                                <button class="icon-btn" style="color:#333;"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="calendar-grid">
+                                <div class="day-name">Mon</div><div class="day-name">Tue</div><div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div><div class="day-name">Sat</div><div class="day-name">Sun</div>
+                                
+                                <div class="day" v-for="(day, index) in calendarDays" :key="index" 
+                                     :class="{ empty: day.empty, 'hover-day': isAdmin && !day.empty }" 
+                                     @click="isAdmin && !day.empty ? openEventModalForDate(day.date) : null"
+                                     :title="isAdmin && !day.empty ? 'Click to add event' : ''">
+                                    {{ day.dayNum }}
+                                    
+                                     <div v-for="evt in day.events" :key="evt.id" class="due-tag" style="margin-top:5px; background:var(--brand-magenta); cursor:pointer;" @click.stop="viewEventDetails(evt)" title="Click to view details">
+                                        {{ evt.title }} 
+                                         <i v-if="isAdmin" class="fas fa-times" style="margin-left: 8px; color: #ffb3b3;" @click.stop="adminDelete('Event', evt.id)" title="Delete Event"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. COURSES / RESOURCES VIEW -->
+                <div v-else-if="currentView === 'courses' || currentView === 'resources'" class="page-section bg-light">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>{{ currentView === 'courses' ? 'Online Courses' : 'Learning Resources' }}</h2>
+                            <p>Develop your teaching skills with our CPD accredited materials.</p>
+                            <button class="admin-action-btn" v-if="isAdmin" @click="adminAdd(currentView)">+ Add New {{ currentView.slice(0,-1) }}</button>
+                        </div>
+                        <div class="list-grid">
+                            <div class="list-card" v-for="item in (currentView === 'courses' ? coursesData : resourcesData)" :key="item.id">
+                                <div class="card-img" :style="{ backgroundImage: 'url(' + item.img + ')' }">
+                                    <span class="tag">{{ item.tag }}</span>
+                                </div>
+                                <div class="card-body">
+                                    <h4>{{ item.title }}</h4>
+                                    <p class="duration"><i class="far fa-clock"></i> {{ item.duration }}</p>
+                                    <p class="price">{{ item.price === 0 ? 'Free' : 'RM' + item.price }}</p>
+                                    <button class="outline-btn" @click="viewItemDetails(item)">More details</button>
+                                    <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('Item', item.id)"><i class="fas fa-trash"></i> Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. BOOKSTORE VIEW -->
+                <div v-else-if="currentView === 'bookstore'" class="page-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>EduTech Bookshop</h2>
+                            <p>Browse the latest exam books and resources.</p>
+                            <button class="admin-action-btn" v-if="isAdmin" @click="adminAdd('Book')">+ Add New Book</button>
+                        </div>
+                        <div class="book-grid">
+                            <div class="book-card" v-for="book in books" :key="book.id">
+                                <div class="book-img-wrapper"><img :src="book.cover_image_url" alt="Book Cover"></div>
+                                <div class="book-info">
+                                    <span class="category">{{ book.category }}</span>
+                                    <h4>{{ book.title }}</h4>
+                                    <p class="price">RM{{ book.price }}</p>
+                                    <button class="add-cart-btn" @click="addToCart(book)"><i class="fas fa-plus"></i> Add to Cart</button>
+                                    <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('Book', book.id)"><i class="fas fa-trash"></i> Delete Book</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. NEWS VIEW -->
+                <div v-else-if="currentView === 'news'" class="page-section bg-light">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>Latest News & Announcements</h2>
+                            <p>Stay up to date with the latest from EduTech Platform.</p>
+                            <button class="admin-action-btn" v-if="isAdmin" @click="adminAdd('News')">+ Add Announcement</button>
+                        </div>
+                        <div class="list-grid">
+                            <div class="list-card" v-for="news in newsData" :key="news.id">
+                                <div class="card-img" :style="{ backgroundImage: 'url(' + news.img + ')' }"></div>
+                                <div class="card-body">
+                                    <p class="news-date">{{ news.news_date }}</p>
+                                    <h4>{{ news.title }}</h4>
+                                    <p class="news-excerpt">{{ news.excerpt }}</p>
+                                    <button class="text-btn" @click="readFullStory(news)">Read full story <i class="fas fa-arrow-right"></i></button>
+                                    <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('News', news.id)" style="width: auto; padding: 5px 10px; font-size: 0.8rem; margin-top: 10px;"><i class="fas fa-trash"></i> Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. NEWS DETAIL VIEW -->
+                <div v-else-if="currentView === 'news-detail' && selectedNews" class="page-section bg-light">
+                    <div class="text-page-container">
+                        <button class="back-btn" @click="changeView('news')"><i class="fas fa-arrow-left"></i> Back to News</button>
+                        <p class="news-date" style="margin-top: 20px;">{{ selectedNews.news_date }}</p>
+                        <h2 class="text-page-title" style="margin-bottom: 20px;">{{ selectedNews.title }}</h2>
+                        <div class="detail-img-box">
+                            <img :src="selectedNews.img" alt="News Image" style="width: 100%; border-radius: 8px; margin-bottom: 20px;">
+                        </div>
+                        <p style="font-size: 1.1rem; line-height: 1.8; color: #333;">{{ selectedNews.full_content }}</p>
+                    </div>
+                </div>
+
+                <!-- 8. POLICY & PRIVACY VIEW -->
+                <div v-else-if="currentView === 'policy' || currentView === 'privacy'" class="page-section bg-light">
+                    <div class="text-page-container">
+                        <h2 class="text-page-title">{{ currentView === 'policy' ? 'Cookie & Usage Policy' : 'Privacy Policy' }}</h2>
+                        <p class="last-updated">Last Updated: April 2026</p>
+                        <hr class="divider">
+                        
+                        <div v-if="currentView === 'policy'">
+                            <h3>1. What Are Cookies</h3>
+                            <p>Cookies are small text files that are placed on your computer or mobile device when you browse websites. They are widely used in order to make websites work, or work more efficiently, as well as to provide information to the owners of the site.</p>
+                            
+                            <h3>2. How We Use Cookies</h3>
+                            <p>EduTech Platform uses cookies for the following purposes:</p>
+                            <ul>
+                                <li><strong>Essential Cookies:</strong> Required for the operation of our platform, such as logging into your student or admin account and securely processing checkout items in your cart.</li>
+                                <li><strong>Analytical Cookies:</strong> Help us understand how visitors interact with our courses and resources so we can improve the user experience.</li>
+                            </ul>
+
+                            <h3>3. Managing Your Preferences</h3>
+                            <p>You can set your browser not to accept cookies. However, in a few cases, some of our platform features (like saving items to your shopping cart or keeping you logged in) may not function as a result.</p>
+                        </div>
+                        
+                        <div v-if="currentView === 'privacy'">
+                            <h3>1. Information We Collect</h3>
+                            <p>When you register for an EduTech student account, we collect personal information such as your Full Name and a valid @gmail.com email address. When you purchase books from our bookstore, we collect shipping details including your address and preferred shipping method.</p>
+                            
+                            <h3>2. How We Use Your Data</h3>
+                            <p>We use the collected data exclusively to:</p>
+                            <ul>
+                                <li>Create and manage your academic account.</li>
+                                <li>Process your bookstore orders and deliver your items.</li>
+                                <li>Notify you about relevant academic calendar events, course updates, and news.</li>
+                            </ul>
+
+                            <h3>3. Data Security</h3>
+                            <p>EduTech uses industry-standard encryption (such as bcrypt for password hashing) to protect your personal information. We do not sell, trade, or rent your personal identification information to others.</p>
+                            
+                            <h3>4. Your Rights</h3>
+                            <p>You have the right to request a copy of the information we hold about you, or ask us to correct or delete it. For any data-related requests, please contact the EduTech Administration team.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. ADMIN DASHBOARD VIEW -->
+                <div v-else-if="currentView === 'admin-dashboard' && isAdmin" class="page-section bg-light">
+                    <div class="container" style="max-width: 1400px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                            <div>
+                                <h2 style="color: var(--brand-magenta);">Admin Dashboard</h2>
+                                <p style="font-weight: 600;">Welcome, {{ currentUser.name }}</p>
+                            </div>
+                            <button class="cta-btn" @click="showAdminCreateModal = true" style="background-color: #000;">+ Create New Admin</button>
+                        </div>
+                        <div class="admin-panel">
+                            <h3><i class="fas fa-box"></i> Recent Orders</h3>
+                            <table class="admin-table">
+                                <thead>
+                                    <tr><th>Order ID</th><th>Buyer Name</th><th>Location</th><th>Total</th><th>Shipping Method</th><th>Date</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="order in orders" :key="order.id">
+                                        <td style="font-weight: bold;">ORD-{{ order.id }}</td><td>{{ order.buyer }}</td><td>{{ order.country }}</td><td style="color: var(--brand-magenta); font-weight: bold;">RM{{ order.total_amount }}</td>
+                                        <td><span class="ship-badge" :class="order.shipping_method === 'Plane' ? 'badge-plane' : 'badge-ship'"><i :class="order.shipping_method === 'Plane' ? 'fas fa-plane' : 'fas fa-ship'"></i> {{ order.shipping_method }}</span></td>
+                                        <td>{{ new Date(order.order_date).toLocaleDateString() }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </transition>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-grid">
+                <div><h4>Contact Us</h4><p>EduTech University<br>4 London Wall Place<br>London</p></div>
+                <div><h4>Useful Links</h4><ul>
+                        <li><a href="#" @click.prevent="changeView('news')">News & Updates</a></li>
+                        <li><a href="#" @click.prevent="changeView('policy')">Cookie Policy</a></li>
+                        <li><a href="#" @click.prevent="changeView('privacy')">Privacy Policy</a></li>
+                </ul></div>
+                <div><h4>Follow Us</h4><div class="social-icons">
+                        <a href="#" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+                        <a href="#" target="_blank" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                </div></div>
+            </div>
+        </footer>
+
+        <!-- 购物车侧边栏 -->
+        <transition name="slide">
+            <div class="cart-sidebar" v-if="isCartOpen">
+                <div class="cart-header"><h3>Your Cart</h3><button class="close-btn" @click="toggleCart"><i class="fas fa-times"></i></button></div>
+                <div class="cart-items">
+                    <div v-if="cart.length === 0" style="text-align:center; margin-top:20px; color:#888;">Cart is empty.</div>
+                    <div class="cart-item" v-for="(item, index) in cart" :key="index">
+                        <div>
+                            <p class="cart-item-title" style="font-weight: 600; margin-bottom: 5px;">{{ item.title }}</p>
+                            <p class="cart-item-price" style="color: var(--brand-magenta); font-weight: 800;">RM{{ item.price }}</p>
+                        </div>
+                        <button class="remove-btn" @click="removeFromCart(index)" title="Remove item"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="cart-footer">
+                    <div class="cart-total">Total: RM{{ cartTotal }}</div>
+                    <button class="checkout-btn" @click="showCheckoutModal = true">Checkout</button>
+                </div>
+            </div>
+        </transition>
+        <div class="overlay" v-if="isCartOpen" @click="toggleCart"></div>
+
+        <!-- ================= 结账弹窗 ================= -->
+        <transition name="page-fade">
+            <div class="checkout-modal-wrapper" v-if="showCheckoutModal">
+                <div class="checkout-modal">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Checkout</h3>
+                    <div class="form-group">
+                        <label>Delivery Address</label>
+                        <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="123 Main St">
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" v-model="checkoutForm.country" class="input-field" placeholder="United Kingdom">
+                    </div>
+                    <div class="form-group">
+                        <label>Shipping Method</label>
+                        <select v-model="checkoutForm.shippingMethod" class="input-field">
+                            <option value="Ship">Standard Ship</option>
+                            <option value="Plane">Express Plane</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button class="outline-btn" style="flex:1;" @click="showCheckoutModal = false">Cancel</button>
+                        <button class="submit-btn" style="flex:1; background-color: var(--brand-magenta); border:none; color:white; font-weight:bold; cursor:pointer;" @click="processCheckout">Pay RM{{ cartTotal }}</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ================= 真正的管理员添加数据弹窗 (Admin Form Modal) ================= -->
+        <transition name="page-fade">
+            <div class="checkout-modal-wrapper" v-if="showAdminModal">
+                <div class="checkout-modal">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Add New {{ adminFormType }}</h3>
+                    
+                    <div class="form-group">
+                        <label>Title / Name</label>
+                        <input type="text" v-model="adminFormData.title" class="input-field" placeholder="Enter title here...">
+                    </div>
+                    
+                    <template v-if="adminFormType !== 'Event'">
+                        <div class="form-group" v-if="adminFormType === 'Book' || adminFormType === 'Course'">
+                            <label>Price (RM)</label>
+                            <input type="number" v-model="adminFormData.price" class="input-field" placeholder="0.00" step="0.01">
+                        </div>
+
+                        <!-- 🚨 优化为：本地文件上传 -->
+                        <div class="form-group">
+                            <label>Upload Image (PNG/JPEG)</label>
+                            <input type="file" class="input-field" accept="image/png, image/jpeg, image/jpg" @change="handleImageUpload" :disabled="isUploading">
+                            
+                            <!-- 上传中的文字提示 -->
+                            <div v-if="isUploading" style="color: var(--brand-magenta); font-weight: bold; font-size: 0.9rem; margin-top: 5px;">
+                                <i class="fas fa-spinner fa-spin"></i> Uploading... Please wait.
+                            </div>
+                            
+                            <!-- 上传成功后显示一个小小的图片预览 -->
+                            <div v-if="adminFormData.img && !isUploading" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                                <span style="color: green; font-size: 0.9rem; font-weight: bold;"><i class="fas fa-check-circle"></i> Uploaded!</span>
+                                <img :src="adminFormData.img" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
+                            </div>
+                        </div>
+                        
+                        <!-- 🚨 书籍 (Book)：只有 Category (分类) -->
+                        <div class="form-group" v-if="adminFormType === 'Book'">
+                            <label>Category</label>
+                            <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. Music Theory">
+                        </div>
+
+                        <!-- 🚨 课程 (Course)：下拉选择 Category + 输入 Duration -->
+                        <div style="display:flex; gap:10px;" v-if="adminFormType === 'Course'">
+                            <div class="form-group" style="flex:1;">
+                                <label>Category</label>
+                                <!-- 限定选项的下拉菜单 -->
+                                <select v-model="adminFormData.category" class="input-field">
+                                    <option value="" disabled>Select Category...</option>
+                                    <option value="Degree">Degree</option>
+                                    <option value="Master">Master</option>
+                                    <option value="PhD">PhD</option>
+                                    <option value="Free">Free</option>
+                                    <option value="Diploma">Diploma</option>
+                                    <option value="Secondary School">Secondary School</option>
+                                    <option value="Primary School">Primary School</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Duration</label>
+                                <input type="text" v-model="adminFormData.duration" class="input-field" placeholder="e.g. 10 Hours">
+                            </div>
+                        </div>
+
+                        <!-- 🚨 资源 (Resource)：输入 Category + 输入 Duration -->
+                        <div style="display:flex; gap:10px;" v-if="adminFormType === 'Resource'">
+                            <div class="form-group" style="flex:1;">
+                                <label>Category (Tag)</label>
+                                <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. VIDEO">
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Duration</label>
+                                <input type="text" v-model="adminFormData.duration" class="input-field" placeholder="e.g. 45 mins watch">
+                            </div>
+                        </div>
+
+                        <!-- 新闻 (News)：只需要简短说明 (Excerpt) -->
+                        <div class="form-group" v-if="adminFormType === 'News'">
+                            <label>Short Excerpt</label>
+                            <input type="text" v-model="adminFormData.extra" class="input-field" placeholder="Brief summary...">
+                        </div>
+                    </template>
+
+                    <template v-if="adminFormType === 'Event'">
+                        <div class="form-group">
+                            <label>Event Date</label>
+                            <input type="date" v-model="adminFormData.event_date" class="input-field">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Start Time</label>
+                                <input type="time" v-model="adminFormData.start_time" class="input-field">
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>End Time</label>
+                                <input type="time" v-model="adminFormData.end_time" class="input-field">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Event Details</label>
+                            <textarea v-model="adminFormData.extra" class="input-field" rows="3" placeholder="Enter event details here..."></textarea>
+                        </div>
+                    </template>
+
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button class="outline-btn" style="flex:1;" @click="showAdminModal = false">Cancel</button>
+                        <button class="submit-btn" style="flex:1; background-color: var(--brand-magenta); border:none; color:white; font-weight:bold; cursor:pointer;" @click="submitAdminForm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ================= 创建新管理员弹窗 ================= -->
+        <transition name="page-fade">
+            <div class="checkout-modal-wrapper" v-if="showAdminCreateModal">
+                <div class="checkout-modal">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Create Admin Account</h3>
+                    
+                    <div class="form-group">
+                        <label>Admin Full Name</label>
+                        <input type="text" v-model="newAdminForm.name" class="input-field" placeholder="e.g. System Manager">
+                    </div>
+                    <div class="form-group">
+                        <label>Admin Email</label>
+                        <input type="email" v-model="newAdminForm.email" class="input-field" placeholder="admin.new@edutech.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Secure Password</label>
+                        <input type="password" v-model="newAdminForm.password" class="input-field" placeholder="Create password">
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <button class="outline-btn" style="flex:1;" @click="showAdminCreateModal = false">Cancel</button>
+                        <button class="submit-btn" style="flex:1; background-color: var(--brand-magenta); border:none; color:white; font-weight:bold; cursor:pointer;" @click="createNewAdmin">Create</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ================= 课程/资源详情弹窗 ================= -->
+        <transition name="page-fade">
+            <div class="checkout-modal-wrapper" v-if="showItemModal && selectedItem">
+                <div class="checkout-modal">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">{{ selectedItem.title }}</h3>
+                    <img v-if="selectedItem.img" :src="selectedItem.img" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                    
+                    <p style="margin-bottom: 10px;"><i class="far fa-clock"></i> <strong>Duration:</strong> {{ selectedItem.duration }}</p>
+                    <p style="margin-bottom: 10px;"><i class="fas fa-tag"></i> <strong>Category:</strong> {{ selectedItem.tag }}</p>
+                    <p style="margin-bottom: 15px;"><i class="fas fa-pound-sign"></i> <strong>Price:</strong> {{ selectedItem.price === 0 ? 'Free' : 'RM' + selectedItem.price }}</p>
+                    
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; color:#444; line-height: 1.6; margin-bottom: 20px;">
+                        {{ selectedItem.description || 'No detailed description available.' }}
+                    </div>
+                    
+                    <button class="outline-btn" style="width:100%; padding: 12px; font-size: 1.05rem; border-radius: 8px;" @click="showItemModal = false">Close</button>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ================= 日历事件详情弹窗 ================= -->
+        <transition name="page-fade">
+            <div class="checkout-modal-wrapper" v-if="showEventModal && selectedEvent">
+                <div class="checkout-modal">
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 15px;"><i class="fas fa-calendar-check"></i> Event Details</h3>
+                    <div style="font-size: 1.1rem; margin-bottom: 20px;">
+                        <p style="margin-bottom: 10px;"><strong>Title:</strong> {{ selectedEvent.title }}</p>
+                        <p style="margin-bottom: 10px;"><strong>Date:</strong> {{ selectedEvent.event_date.split('T')[0] }}</p>
+                        <p style="margin-bottom: 10px;"><strong>Time:</strong> {{ selectedEvent.start_time.slice(0, 5) }} - {{ selectedEvent.end_time.slice(0, 5) }}</p>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 5px; color: #333;">Description:</h4>
+                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; color:#555; min-height: 80px; margin-bottom: 20px;">
+                        {{ selectedEvent.details || 'No additional details provided for this event.' }}
+                    </div>
+                    
+                    <button class="outline-btn" style="width:100%; padding: 12px; font-size: 1.05rem; border-radius: 8px;" @click="showEventModal = false">Close</button>
+                </div>
+            </div>
+        </transition>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
