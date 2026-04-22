@@ -556,18 +556,22 @@
                     <!-- 🚨 新增：支付方式选择 (这里调用 handlePayment 方法) -->
                     <h4 style="margin-bottom:15px; color:#333;">Select Payment Method</h4>
                     <div class="payment-options">
+                        <!-- Maybank -->
                         <div class="payment-btn" @click="handlePayment('Maybank')">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Maybank_Logo.png" alt="Maybank">
                             <span>Maybank</span>
                         </div>
+                        <!-- Bank Islam -->
                         <div class="payment-btn" @click="handlePayment('Bank Islam')">
                             <img src="https://www.bankislam.com/wp-content/uploads/logo_bank_islam.png" alt="Bank Islam">
                             <span>Bank Islam</span>
                         </div>
+                        <!-- TNG -->
                         <div class="payment-btn" @click="handlePayment('TNG')">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Touch_%27n_Go_eWallet_logo.png" alt="TNG">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Touch_%27n_Go_eWallet_logo.svg/1200px-Touch_%27n_Go_eWallet_logo.svg.png" alt="TNG">
                             <span>TNG</span>
                         </div>
+                        <!-- SPay -->
                         <div class="payment-btn" @click="handlePayment('SPay')">
                             <img src="https://spayglobal.my/img/logo-spayglobal.png" alt="SPay">
                             <span>SPay</span>
