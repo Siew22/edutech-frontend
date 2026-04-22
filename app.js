@@ -28,6 +28,10 @@ createApp({
             selectedNews: null,
             
             // --- 全局状态 ---
+            // 🚨 新增：用于控制日历的当前显示的月份和年份
+            currentMonth: 4, // 0 = Jan, 4 = May, 11 = Dec
+            currentYear: 2026,
+            
             currentUser: null, 
             cart: [],          
 
@@ -47,20 +51,54 @@ createApp({
         cartTotal() {
             return this.cart.reduce((total, item) => total + Number(item.price), 0).toFixed(2);
         },
+        // 🚨 新增：动态生成日历的标题 (如 "June 2026")
+        calendarHeaderTitle() {
+            const date = new Date(this.currentYear, this.currentMonth);
+            return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        },
+
+        // 🚨 替换：全自动智能计算每个月的格子
         calendarDays() {
             const days = [];
-            const padding = [27, 28, 29, 30];
-            padding.forEach(p => days.push({ dayNum: p, empty: true, events: [] }));
+            // 1. 获取这个月的第一天是星期几 (0是周日，1是周一)
+            let firstDay = new Date(this.currentYear, this.currentMonth, 1).getDay();
+            // 把周日(0)换成7，方便以星期一为开头计算空格
+            if (firstDay === 0) firstDay = 7; 
+            const paddingCount = firstDay - 1; // 需要空几格
+
+            // 2. 获取这个月一共有多少天
+            const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+
+            // 3. 填充前面的空白格子
+            for (let i = 0; i < paddingCount; i++) {
+                days.push({ dayNum: '', empty: true, events: [] });
+            }
             
-            for(let i=1; i<=31; i++) {
-                const dateStr = `2026-05-${String(i).padStart(2, '0')}`;
+            // 4. 填充真实的日期
+            for(let i = 1; i <= daysInMonth; i++) {
+                // 格式化为 YYYY-MM-DD，用来和数据库里的数据匹配
+                const monthStr = String(this.currentMonth + 1).padStart(2, '0');
+                const dayStr = String(i).padStart(2, '0');
+                const dateStr = `${this.currentYear}-${monthStr}-${dayStr}`;
+                
+                // 筛选这一天的事件
                 const dayEvents = this.eventsData.filter(e => {
                     return e.event_date && String(e.event_date).startsWith(dateStr);
                 });
+                
                 days.push({ dayNum: i, empty: false, date: dateStr, events: dayEvents });
             }
+
+            // 5. 填充后面的空白格子，让排版整齐 (保持7的倍数)
+            const totalCells = days.length;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let i = 0; i < remainingCells; i++) {
+                days.push({ dayNum: '', empty: true, events: [] });
+            }
+
             return days;
         },
+        
         isAdmin() {
             return this.currentUser && this.currentUser.role === 'admin';
         }
@@ -103,6 +141,24 @@ createApp({
             this.currentView = viewName;
             this.isCartOpen = false; 
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        },
+
+        // 🚨 新增：日历翻页功能
+        prevMonth() {
+            if (this.currentMonth === 0) {
+                this.currentMonth = 11;
+                this.currentYear--;
+            } else {
+                this.currentMonth--;
+            }
+        },
+        nextMonth() {
+            if (this.currentMonth === 11) {
+                this.currentMonth = 0;
+                this.currentYear++;
+            } else {
+                this.currentMonth++;
+            }
         },
         toggleCart() { this.isCartOpen = !this.isCartOpen; },
         
