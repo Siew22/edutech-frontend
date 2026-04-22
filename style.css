@@ -291,3 +291,79 @@ select.input-field { appearance: auto; cursor: pointer; }
 .payment-item-btn:active {
     transform: scale(0.98);
 }
+/* --- 全局搜索弹窗样式 --- */
+.search-modal-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1200;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 从顶部出现 */
+    padding-top: 10vh;
+}
+
+.search-modal-content {
+    background: white;
+    width: 90%;
+    max-width: 700px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+.search-results-list {
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-result-item:hover {
+    background-color: #f9f9f9;
+}
+
+.search-result-item img {
+    width: 100px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.result-info h4 {
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.result-type-badge {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 10px;
+    color: white;
+}
+.result-type-badge.book { background-color: #007bff; }
+.result-type-badge.course { background-color: #28a745; }
+.result-type-badge.resource { background-color: #ffc107; color: #333; }
+
+.not-found-msg {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+}
+.not-found-msg i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}

@@ -16,6 +16,14 @@ createApp({
             showAdminModal: false, 
             showAdminCreateModal: false, 
             showPaymentModal: false, // 🚨 支付二维码弹窗开关
+            showSearchModal: false,
+            searchQuery: '',
+            searchResults: [],
+            isSearching: false,
+            noResultsFound: false,
+            courseFilter: 'All',
+            resourceFilter: 'All',
+            bookCategoryFilter: 'All',
 
             // --- 表单与暂存数据 ---
             selectedPaymentMethod: null, // 🚨 记录用户选了哪个 Bank/eWallet
@@ -129,6 +137,26 @@ createApp({
 
             return days;
         },
+        // --- 过滤后的动态列表 ---
+        uniqueBookCategories() {
+            // 自动从 books 数据中提取所有不重复的 category
+            const categories = new Set(this.books.map(book => book.category));
+            return ['All Categories', ...categories]; // 返回一个数组，开头加上 'All'
+        },
+        filteredCourses() {
+            if (this.courseFilter === 'All') return this.coursesData;
+            if (this.courseFilter === 'Free') return this.coursesData.filter(c => c.price === 0);
+            if (this.courseFilter === 'Paid') return this.coursesData.filter(c => c.price > 0);
+        },
+        filteredResources() {
+            if (this.resourceFilter === 'All') return this.resourcesData;
+            if (this.resourceFilter === 'Free') return this.resourcesData.filter(r => r.price === 0);
+            if (this.resourceFilter === 'Paid') return this.resourcesData.filter(r => r.price > 0);
+        },
+        filteredBooks() {
+            if (this.bookCategoryFilter === 'All Categories') return this.books;
+            return this.books.filter(b => b.category === this.bookCategoryFilter);
+        },
         
         isAdmin() {
             return this.currentUser && this.currentUser.role === 'admin';
@@ -164,6 +192,44 @@ createApp({
             }
         },
 
+        // ================= 搜索逻辑 =================
+        async handleSearch() {
+            if (!this.searchQuery.trim()) return;
+
+            this.isSearching = true;
+            this.noResultsFound = false;
+            this.searchResults = [];
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/search?q=${this.searchQuery}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await response.json();
+                this.searchResults = data;
+                
+                if (data.length === 0) {
+                    this.noResultsFound = true;
+                }
+            } catch (error) {
+                console.error("Search failed:", error);
+                this.noResultsFound = true;
+            } finally {
+                this.isSearching = false;
+            }
+        },
+
+        // 点击搜索结果后，跳转到对应的页面
+        goToResult(item) {
+            this.showSearchModal = false; // 关闭搜索框
+            if (item.type === 'Book') {
+                this.changeView('bookstore');
+            } else if (item.type === 'Course') {
+                this.changeView('courses');
+            } else if (item.type === 'Resource') {
+                this.changeView('resources');
+            }
+        },
+
         // 🚨 新增：处理图片的辅助函数 (瞒天过海)
         async convertImages(arr, imgKey) {
             return await Promise.all(arr.map(async item => {
@@ -191,6 +257,13 @@ createApp({
             } catch (error) {
                 console.error("Error fetching orders:", error);
             }
+        },
+
+        setCourseFilter(filter) {
+            this.courseFilter = filter;
+        },
+        setResourceFilter(filter) {
+            this.resourceFilter = filter;
         },
 
         // ================= 视图与购物车逻辑 =================

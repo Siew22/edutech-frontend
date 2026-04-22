@@ -30,7 +30,7 @@
                     <!-- 如果是 Admin，显示进入后台的按钮 -->
                     <button class="icon-btn" v-if="isAdmin" @click="changeView('admin-dashboard')" title="Admin Dashboard" style="color: #ffeb3b;"><i class="fas fa-user-shield"></i> Dashboard</button>
                     
-                    <button class="icon-btn"><i class="fas fa-search"></i></button>
+                    <button class="icon-btn" @click="showSearchModal = true"><i class="fas fa-search"></i></button>
                     <div class="cart-wrapper" @click="toggleCart">
                         <button class="icon-btn"><i class="fas fa-shopping-cart"></i></button>
                         <span class="cart-badge" v-if="cart.length > 0">{{ cart.length }}</span>
@@ -657,6 +657,44 @@
                     <div style="display:flex; gap:10px; margin-top:20px;">
                         <button class="outline-btn" style="flex:1;" @click="showAdminModal = false">Cancel</button>
                         <button class="submit-btn" style="flex:1; background-color: var(--brand-magenta); border:none; color:white; font-weight:bold; cursor:pointer;" @click="submitAdminForm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+
+        <!-- ================= 全局搜索弹窗 (Search Modal) ================= -->
+        <transition name="page-fade">
+            <div class="search-modal-wrapper" v-if="showSearchModal" @click.self="showSearchModal = false">
+                <div class="search-modal-content">
+                    <button class="close-btn" @click="showSearchModal = false" style="color: #333; position: absolute; top: 15px; right: 15px; font-size: 1.5rem;">&times;</button>
+                    
+                    <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Search our Site</h3>
+                    
+                    <div class="search-bar" style="display: flex; gap: 10px; margin-bottom: 25px;">
+                        <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="input-field" placeholder="Search for books, courses, or resources...">
+                        <button class="submit-btn" @click="handleSearch" style="background: var(--brand-magenta); color: white; border: none; padding: 0 25px; border-radius: 4px; font-weight: bold; cursor: pointer;">Search</button>
+                    </div>
+
+                    <!-- 搜索结果区域 -->
+                    <div class="search-results-list">
+                        <div v-if="isSearching" style="text-align: center; padding: 20px;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--brand-magenta);"></i>
+                        </div>
+                        
+                        <div v-else-if="noResultsFound" class="not-found-msg">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>No results found for "<strong>{{ searchQuery }}</strong>"</p>
+                        </div>
+                        
+                        <div v-else>
+                            <div v-for="item in searchResults" :key="item.id + item.type" class="search-result-item" @click="goToResult(item)">
+                                <img :src="item.img || 'https://via.placeholder.com/100x70.png?text=No+Image'" alt="Result Image">
+                                <div class="result-info">
+                                    <h4>{{ item.title }}</h4>
+                                    <span class="result-type-badge" :class="item.type.toLowerCase()">{{ item.type }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
