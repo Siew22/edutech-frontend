@@ -556,22 +556,18 @@
                     <!-- 🚨 新增：支付方式选择 (这里调用 handlePayment 方法) -->
                     <h4 style="margin-bottom:15px; color:#333;">Select Payment Method</h4>
                     <div class="payment-options">
-                        <!-- Maybank -->
                         <div class="payment-btn" @click="handlePayment('Maybank')">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/a/ac/Maybank_Logo.png" alt="Maybank">
                             <span>Maybank</span>
                         </div>
-                        <!-- Bank Islam -->
                         <div class="payment-btn" @click="handlePayment('Bank Islam')">
                             <img src="https://www.bankislam.com/wp-content/uploads/logo_bank_islam.png" alt="Bank Islam">
                             <span>Bank Islam</span>
                         </div>
-                        <!-- TNG -->
                         <div class="payment-btn" @click="handlePayment('TNG')">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Touch_%27n_Go_eWallet_logo.svg/1200px-Touch_%27n_Go_eWallet_logo.svg.png" alt="TNG">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Touch_%27n_Go_eWallet_logo.png" alt="TNG">
                             <span>TNG</span>
                         </div>
-                        <!-- SPay -->
                         <div class="payment-btn" @click="handlePayment('SPay')">
                             <img src="https://spayglobal.my/img/logo-spayglobal.png" alt="SPay">
                             <span>SPay</span>
@@ -590,8 +586,8 @@
                     <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">Scan to Pay RM{{ cartTotal }}</h3>
                     <p style="margin-bottom: 20px;">Paying via: <strong>{{ selectedPaymentMethod }}</strong></p>
                     
-                    <!-- 🚨 根据选择显示不同的二维码图片 -->
-                    <div class="qr-container">
+                    <!-- 🚨 注意：这里必须加上 images/ 前缀，因为你的图片在文件夹里 -->
+                     <div class="qr-container">
                         <img v-if="selectedPaymentMethod === 'Maybank'" src="images/maybank_qr.jpg" class="qr-code">
                         <img v-if="selectedPaymentMethod === 'Bank Islam'" src="images/bankislam_qr.jpg" class="qr-code">
                         <img v-if="selectedPaymentMethod === 'TNG'" src="images/tng_qr.jpg" class="qr-code">
