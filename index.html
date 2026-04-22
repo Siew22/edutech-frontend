@@ -670,11 +670,13 @@
                     
                     <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Search our Site</h3>
                     
+                    <!-- 🚨 1. 找回来的搜索输入框 -->
                     <div class="search-bar" style="display: flex; gap: 10px; margin-bottom: 25px;">
-                        <!-- ... 这是你现有的 input 和 search button ... -->
+                        <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="input-field" placeholder="Search for books, courses, or resources...">
+                        <button class="submit-btn" @click="handleSearch" style="background: var(--brand-magenta); color: white; border: none; padding: 0 25px; border-radius: 4px; font-weight: bold; cursor: pointer;">Search</button>
                     </div>
 
-                    <!-- 🚨🚨🚨 新增：搜索结果的过滤器 🚨🚨🚨 -->
+                    <!-- 🚨 2. 之前加的二次过滤器 -->
                     <div v-if="searchResults.length > 0" class="filter-group" style="margin-bottom: 20px; justify-content: center;">
                         <button class="filter-btn" :class="{ active: searchFilter === 'All' }" @click="setSearchFilter('All')">All</button>
                         <button class="filter-btn" :class="{ active: searchFilter === 'Course' }" @click="setSearchFilter('Course')">Courses</button>
@@ -682,7 +684,7 @@
                         <button class="filter-btn" :class="{ active: searchFilter === 'Resource' }" @click="setSearchFilter('Resource')">Resources</button>
                     </div>
 
-                    <!-- 搜索结果区域 -->
+                    <!-- 🚨 3. 找回来的搜索结果列表 -->
                     <div class="search-results-list">
                         <div v-if="isSearching" style="text-align: center; padding: 20px;">
                             <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--brand-magenta);"></i>
@@ -694,7 +696,7 @@
                         </div>
                         
                         <div v-else>
-                            <div v-for="item in searchResults" :key="item.id + item.type" class="search-result-item" @click="goToResult(item)">
+                            <div v-for="item in filteredSearchResults" :key="item.id + item.type" class="search-result-item" @click="goToResult(item)">
                                 <img :src="item.img || 'https://via.placeholder.com/100x70.png?text=No+Image'" alt="Result Image">
                                 <div class="result-info">
                                     <h4>{{ item.title }}</h4>
