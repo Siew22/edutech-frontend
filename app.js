@@ -30,6 +30,7 @@ createApp({
             selectedItem: null,
             showEventModal: false,   // 🚨 控制事件弹窗的开关
             selectedEvent: null,     // 🚨 记录当前点击的是哪个事件
+            isUploading: false,
             
             // --- 全局状态 ---
             // 🚨 新增：用于控制日历的当前显示的月份和年份
@@ -193,6 +194,44 @@ createApp({
         },
 
         // ================= 支付流程逻辑 (核心修改) =================
+
+        // 🚨🚨🚨 新增：处理本地图片上传的方法！🚨🚨🚨
+        async handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 格式验证
+            if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+                alert('Invalid file format. Please upload PNG or JPEG only!');
+                event.target.value = ''; // 清空选择，防止重复上传错误文件
+                return;
+            }
+
+            this.isUploading = true; // 打开“上传中”的旋转图标
+            const formData = new FormData();
+            formData.append('media', file);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/upload`, {
+                    method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true' },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Upload failed');
+                
+                // 把后端返回的公网图片地址，存入表单
+                this.adminFormData.img = BACKEND_URL + data.url; 
+                alert('Image uploaded successfully!');
+            } catch (error) {
+                console.error(error);
+                alert(`Upload error: ${error.message}`);
+                event.target.value = ''; // 上传失败也清空
+            } finally {
+                this.isUploading = false; // 关闭旋转图标
+            }
+        },
         
         // 1. 点击银行图标，记录支付方式并弹出二维码
         handlePayment(method) {
