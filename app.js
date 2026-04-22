@@ -26,6 +26,8 @@ createApp({
             checkoutForm: { address: '', country: '', shippingMethod: 'Ship' },
             newAdminForm: { name: '', email: '', password: '' },
             selectedNews: null,
+            showItemModal: false,
+            selectedItem: null,
             
             // --- 全局状态 ---
             // 🚨 新增：用于控制日历的当前显示的月份和年份
@@ -175,6 +177,12 @@ createApp({
         readFullStory(newsItem) {
             this.selectedNews = newsItem;
             this.changeView('news-detail');
+        },
+
+        // 🚨 修复：补回点击 More Details 唤醒弹窗的方法！
+        viewItemDetails(item) {
+            this.selectedItem = item;    // 记录你点的是哪个课程
+            this.showItemModal = true;   // 打开弹窗
         },
 
         // ================= 支付流程逻辑 (核心修改) =================
