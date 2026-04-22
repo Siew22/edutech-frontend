@@ -163,8 +163,7 @@
                         </div>
                         <div class="list-grid">
                             <div class="list-card" v-for="item in (currentView === 'courses' ? coursesData : resourcesData)" :key="item.id">
-                                <div class="card-img" :style="{ backgroundImage: 'url(' + item.img + ')' }">
-                                    <span class="tag">{{ item.tag }}</span>
+                                <div class="card-img" :style="{ backgroundImage: 'url(' + (item.img || 'https://via.placeholder.com/500x300.png?text=No+Image') + ')' }">
                                 </div>
                                 <div class="card-body">
                                     <h4>{{ item.title }}</h4>
@@ -506,7 +505,7 @@
 
                         <!-- 🚨 修复 2：加入在线图片链接框（规避 Ngrok 的拦截） -->
                         <div class="form-group">
-                            <label>Image URL (Recommended: Paste an online image link)</label>
+                            <label>Image URL (Required - Paste an online image link)</label>
                             <input type="text" v-model="adminFormData.img" class="input-field" placeholder="https://images.unsplash.com/...">
                             
                             <label style="margin-top:10px; display:block; font-size:0.8rem; color:#888;">Or upload local file (May be blocked by free Ngrok):</label>
