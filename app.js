@@ -181,10 +181,10 @@ createApp({
                     fetch(`${BACKEND_URL}/api/events`, { headers })
                 ]);
                 
-                this.books = await booksRes.json();
-                this.coursesData = await coursesRes.json();
-                this.resourcesData = await resourcesRes.json();
-                this.newsData = await newsRes.json();
+                this.books = books;
+                this.coursesData = courses;
+                this.resourcesData = resources;
+                this.newsData = news;
                 this.eventsData = await eventsRes.json();
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -248,6 +248,8 @@ createApp({
                 this.isSearching = false;
             }
         },
+
+        
 
         setSearchFilter(filter) {
             this.searchFilter = filter;
