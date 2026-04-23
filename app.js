@@ -34,34 +34,15 @@ createApp({
             adminFormType: 'Book',
             currentAdminTab: 'Basic', // 🚨 新增：记录当前打开的是哪个 Tab页
             adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null },
-
-            // --- 视图与UI开关 ---
-            currentView: 'home', 
-            // ... 其它保留不变
-            courseFilter: 'All',
-            courseLevelFilter: 'All',   // 🚨 新增课程层级过滤
-            resourceFilter: 'All',
-            resourceLevelFilter: 'All', // 🚨 新增资源层级过滤
-            bookCategoryFilter: 'All Categories',
-            bookLevelFilter: 'All',     // 🚨 新增书籍层级过滤
-
-            // --- 表单与暂存数据 ---
-            selectedPaymentMethod: null, 
-            adminFormType: 'Book',
-            currentAdminTab: 'Basic',
-            // 🚨 新增 targetLevel
-            adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null, targetLevel: 'All' },
-            
             adminAdd(type) {
-                if(type === 'courses') type = 'Course';
-                if(type === 'resources') type = 'Resource';
-                
-                this.adminFormType = type;
-                // 🚨 重置表单时也要带上 targetLevel
-                this.adminFormData = { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null, targetLevel: 'All' }; 
-                this.showAdminModal = true;
-            },
-
+            if(type === 'courses') type = 'Course';
+            if(type === 'resources') type = 'Resource';
+            
+            this.adminFormType = type;
+            // 🚨 清空表单时，也把 description 清空
+            this.adminFormData = { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null }; 
+            this.showAdminModal = true;
+        },
             loginForm: { email: '', password: '' },
             registerForm: { name: '', email: '', password: '' },
             checkoutForm: { address: '', country: '', shippingMethod: 'Ship' },
@@ -169,24 +150,18 @@ createApp({
             return ['All Categories', ...categories]; // 返回一个数组，开头加上 'All'
         },
         filteredCourses() {
-            let result = this.coursesData;
-            if (this.courseFilter === 'Free') result = result.filter(c => c.price === 0);
-            if (this.courseFilter === 'Paid') result = result.filter(c => c.price > 0);
-            if (this.courseLevelFilter !== 'All') result = result.filter(c => c.level === this.courseLevelFilter); // 🚨 双重过滤
-            return result;
+            if (this.courseFilter === 'All') return this.coursesData;
+            if (this.courseFilter === 'Free') return this.coursesData.filter(c => c.price === 0);
+            if (this.courseFilter === 'Paid') return this.coursesData.filter(c => c.price > 0);
         },
         filteredResources() {
-            let result = this.resourcesData;
-            if (this.resourceFilter === 'Free') result = result.filter(r => r.price === 0);
-            if (this.resourceFilter === 'Paid') result = result.filter(r => r.price > 0);
-            if (this.resourceLevelFilter !== 'All') result = result.filter(r => r.level === this.resourceLevelFilter); // 🚨 双重过滤
-            return result;
+            if (this.resourceFilter === 'All') return this.resourcesData;
+            if (this.resourceFilter === 'Free') return this.resourcesData.filter(r => r.price === 0);
+            if (this.resourceFilter === 'Paid') return this.resourcesData.filter(r => r.price > 0);
         },
         filteredBooks() {
-            let result = this.books;
-            if (this.bookCategoryFilter !== 'All Categories') result = result.filter(b => b.category === this.bookCategoryFilter);
-            if (this.bookLevelFilter !== 'All') result = result.filter(b => b.level === this.bookLevelFilter); // 🚨 双重过滤
-            return result;
+            if (this.bookCategoryFilter === 'All Categories') return this.books;
+            return this.books.filter(b => b.category === this.bookCategoryFilter);
         },
 
         filteredSearchResults() {
@@ -201,6 +176,7 @@ createApp({
         }
     },
     methods: {
+
         // 🚨 终极全局图片路径修复工具
         getSafeImageUrl(path) {
             // 1. 如果没有图，给个默认占位图
@@ -620,13 +596,6 @@ createApp({
             }
         },
         async handleLogin() {
-            // 🚨 新增：前端 Login 严格格式验证
-            const email = this.loginForm.email.trim().toLowerCase();
-            if (!email.endsWith('@gmail.com') && !email.endsWith('@edutech.com')) {
-                alert('Login Failed: Only @gmail.com (Student) or @edutech.com (Admin) domains are allowed.');
-                return; 
-            }
-
             try {
                 const response = await fetch(`${BACKEND_URL}/api/login`, {
                     method: 'POST', 
