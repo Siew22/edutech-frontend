@@ -544,3 +544,14 @@ background: #333; color: white; border: none; padding: 0 15px; border-radius: 4p
 .admin-tab-content {
     min-height: 250px; /* 防止切换时弹窗抖动 */
 }
+/* 学位等级标签 */
+.level-badge {
+    font-size: 0.8rem;
+    color: #007bff;
+    background: #e6f2ff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
