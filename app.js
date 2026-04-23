@@ -30,8 +30,10 @@ createApp({
             quizScoreForm: {}, // { itemId: '', score: '' }
 
             // --- 表单与暂存数据 ---
-            selectedPaymentMethod: null, // 🚨 记录用户选了哪个 Bank/eWallet
+            selectedPaymentMethod: null, 
             adminFormType: 'Book',
+            currentAdminTab: 'Basic', // 🚨 新增：记录当前打开的是哪个 Tab页
+            adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null },
             adminAdd(type) {
             if(type === 'courses') type = 'Course';
             if(type === 'resources') type = 'Resource';
@@ -556,7 +558,8 @@ createApp({
             if(type === 'resources') type = 'Resource';
             
             this.adminFormType = type;
-            this.adminFormData = { title: '', price: '', img: '', extra: '', event_date: '', start_time: '', end_time: '' }; 
+            this.currentAdminTab = 'Basic'; // 🚨 新增：每次打开弹窗，都默认回到第一个 Tab
+            this.adminFormData = { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null }; 
             this.showAdminModal = true;
         },
         async submitAdminForm() {

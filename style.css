@@ -511,9 +511,36 @@ margin-top: 15px; display: flex; gap: 5px;
 .quiz-submit-form button {
 background: #333; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer;
 }
-/* 针对 Chrome, Safari, Edge 等现代浏览器 */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+/* --- Admin 弹窗的 Tab 样式 --- */
+.admin-tabs {
+    display: flex;
+    border-bottom: 2px solid #eee;
+    margin-bottom: 20px;
+}
+
+.admin-tabs button {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 12px 15px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #888;
+    cursor: pointer;
+    position: relative;
+    border-bottom: 3px solid transparent;
+    transition: color 0.3s;
+}
+
+.admin-tabs button:hover {
+    color: var(--brand-magenta);
+}
+
+.admin-tabs button.active {
+    color: var(--brand-magenta);
+    border-bottom-color: var(--brand-magenta);
+}
+
+.admin-tab-content {
+    min-height: 250px; /* 防止切换时弹窗抖动 */
 }
