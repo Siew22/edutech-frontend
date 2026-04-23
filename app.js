@@ -95,26 +95,16 @@ createApp({
     },
 
     watch: {
+        // 🚨 智能监听：进论坛就开始 3秒刷一次，离开就停止！
         currentView(newVal) {
-            // 论坛自动刷新逻辑
             if (newVal === 'forum') {
                 this.fetchMessages();
-                this.pollingTimer = setInterval(this.fetchMessages, 3000); 
+                this.pollingTimer = setInterval(this.fetchMessages, 3000); // 每3秒向后端拉取一次最新消息
             } else {
                 if (this.pollingTimer) {
                     clearInterval(this.pollingTimer);
                     this.pollingTimer = null;
                 }
-            }
-
-            // 🚨 修复 1：进入 My Learning 页面时，触发后端拉取数据
-            if (newVal === 'my-learning') {
-                this.fetchMyLearning();
-            }
-
-            // 🚨 修复 2：进入 Admin 页面时，拉取学生提交的测验分数
-            if (newVal === 'admin-dashboard' && this.isAdmin) {
-                this.fetchQuizSubmissions();
             }
         }
     },
