@@ -103,20 +103,17 @@
                                 <div class="form-group">
                                     <label>Email Address</label>
                                     <input v-if="currentView === 'login'" type="email" v-model="loginForm.email" placeholder="Enter your email" class="input-field">
+                                    <!-- 🚨 提示用户可以用哪种邮箱注册 -->
                                     <input v-if="currentView === 'signup'" type="email" v-model="registerForm.email" placeholder="@gmail.com (Student) or @edutech.com (Admin)" class="input-field">
                                 </div>
-                                
-                                <!-- 省略中间的 password 部分 -->
-                                 <button v-if="currentView === 'login'" class="submit-btn auth-submit" @click="handleLogin">Log In</button>
-                                 <button v-if="currentView === 'signup'" class="submit-btn auth-submit" @click="handleRegister">Create Account</button>
-                                 
                                 <div class="form-group">
                                     <label>Password</label>
                                     <input v-if="currentView === 'login'" type="password" v-model="loginForm.password" placeholder="Enter your password" class="input-field">
                                     <input v-if="currentView === 'signup'" type="password" v-model="registerForm.password" placeholder="Create a password" class="input-field">
                                 </div>
+                                
                                 <button v-if="currentView === 'login'" class="submit-btn auth-submit" @click="handleLogin">Log In</button>
-                                <button v-if="currentView === 'signup'" class="submit-btn auth-submit" @click="handleRegister">Register as Student</button>
+                                <button v-if="currentView === 'signup'" class="submit-btn auth-submit" @click="handleRegister">Create Account</button>
                             </form>
                             
                             <p class="auth-switch" v-if="currentView === 'login'">Don't have an account? <a href="#" @click.prevent="changeView('signup')">Sign up</a></p>
@@ -167,9 +164,16 @@
                             <h2>{{ currentView === 'courses' ? 'Online Courses' : 'Learning Resources' }}</h2>
                             <p>Develop your teaching skills with our CPD accredited materials.</p>
                             <button class="admin-action-btn" v-if="isAdmin" @click="adminAdd(currentView)">+ Add New {{ currentView.slice(0,-1) }}</button>
-                            <!-- 🚨 新增：课程/资源过滤栏 -->
-                             <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;" v-if="currentView === 'courses' || currentView === 'resources'">
-                                <select v-model="currentView === 'courses' ? courseLevelFilter : resourceLevelFilter" class="input-field" style="max-width: 200px;">
+                            
+                            <!-- 学位级别过滤器 -->
+                            <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
+                                <select v-if="currentView === 'courses'" v-model="courseLevelFilter" class="input-field" style="max-width: 200px;">
+                                    <option value="All">All Academic Levels</option>
+                                    <option value="Undergraduate">Undergraduate</option>
+                                    <option value="Master">Master</option>
+                                    <option value="PhD">PhD</option>
+                                </select>
+                                <select v-if="currentView === 'resources'" v-model="resourceLevelFilter" class="input-field" style="max-width: 200px;">
                                     <option value="All">All Academic Levels</option>
                                     <option value="Undergraduate">Undergraduate</option>
                                     <option value="Master">Master</option>
@@ -178,10 +182,12 @@
                             </div>
                         </div>
                         <div class="list-grid">
-                            <div class="list-card" v-for="item in (currentView === 'courses' ? coursesData : resourcesData)" :key="item.id">
+                            <!-- 🚨 注意：这里使用的是 filteredCourses 和 filteredResources -->
+                            <div class="list-card" v-for="item in (currentView === 'courses' ? filteredCourses : filteredResources)" :key="item.id">
                                 <div class="card-img" :style="{ backgroundImage: 'url(' + getSafeImageUrl(item.img) + ')' }"></div>
                                 <div class="card-body">
                                     <h4>{{ item.title }}</h4>
+                                    <!-- 🚨 显示该课程属于哪个阶段 -->
                                     <p class="level-badge" v-if="item.level && item.level !== 'All'"><i class="fas fa-user-graduate"></i> For: {{ item.level }}</p>
                                     <p class="duration"><i class="far fa-clock"></i> {{ item.duration }}</p>
                                     <p class="price">{{ item.price === 0 ? 'Free' : 'RM' + item.price }}</p>
@@ -204,23 +210,28 @@
                     <div class="container">
                         <div class="section-header">
                             <h2>EduTech Bookshop</h2>
-                            <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
-                            <select v-model="bookLevelFilter" class="input-field" style="max-width: 200px;">
-                                <option value="All">All Academic Levels</option>
-                                <option value="Undergraduate">Undergraduate</option>
-                                <option value="Master">Master</option>
-                                <option value="PhD">PhD</option>
-                            </select>
-                        </div>
                             <p>Browse the latest exam books and resources.</p>
-                            <button class="admin-action-btn" v-if="isAdmin" @click="adminAdd('Book')">+ Add New Book</button>
+                            
+                            <!-- 学位级别过滤器 -->
+                            <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
+                                <select v-model="bookLevelFilter" class="input-field" style="max-width: 200px;">
+                                    <option value="All">All Academic Levels</option>
+                                    <option value="Undergraduate">Undergraduate</option>
+                                    <option value="Master">Master</option>
+                                    <option value="PhD">PhD</option>
+                                </select>
+                            </div>
+                            
+                            <button class="admin-action-btn" v-if="isAdmin" @click="adminAdd('Book')" style="margin-top: 15px;">+ Add New Book</button>
                         </div>
                         <div class="book-grid">
-                            <div class="book-card" v-for="book in books" :key="book.id">
+                            <!-- 🚨 注意：这里使用的是 filteredBooks -->
+                            <div class="book-card" v-for="book in filteredBooks" :key="book.id">
                                 <div class="book-img-wrapper"><img :src="getSafeImageUrl(book.cover_image_url)" alt="Book Cover"></div>
                                 <div class="book-info">
                                     <span class="category">{{ book.category }}</span>
                                     <h4>{{ book.title }}</h4>
+                                    <!-- 🚨 显示该书属于哪个阶段 -->
                                     <p class="level-badge" v-if="book.level && book.level !== 'All'" style="margin-bottom: 5px;"><i class="fas fa-user-graduate"></i> For: {{ book.level }}</p>
                                     <p class="price">RM{{ book.price }}</p>
                                     <button class="add-cart-btn" @click="addToCart(book, 'book')"><i class="fas fa-plus"></i> Add to Cart</button>
@@ -320,26 +331,24 @@
                             </div>
                             <button class="cta-btn" @click="showAdminCreateModal = true" style="background-color: #000;">+ Create New Admin</button>
                         </div>
+                        
                         <div class="admin-panel">
                             <h3><i class="fas fa-box"></i> Recent Orders</h3>
                             <table class="admin-table">
                                 <thead>
-                                    <!-- 表头 -->
                                      <tr><th>Order ID</th><th>Buyer</th><th>Total</th><th>Status</th><th>Actions</th></tr>
-                                     
-                                     <!-- 表身 (tr 循环里) -->
+                                </thead>
+                                <tbody>
                                       <tr v-for="order in orders" :key="order.id">
                                         <td>ORD-{{ order.id }}</td>
                                         <td>{{ order.buyer }}</td>
                                         <td>RM{{ order.total_amount }}</td>
                                         <td>
-                                            
                                             <span :style="{ color: order.status === 'Completed' ? 'green' : 'orange', fontWeight: 'bold' }">
                                                 {{ order.status }}
                                             </span>
                                         </td>
                                         <td>
-                                            <!-- 如果是 Pending 状态，显示确认按钮 -->
                                              <button v-if="order.status === 'Pending'" 
                                              @click="updateOrderStatus(order.id, 'Completed')"
                                              style="background:green; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;"> Confirm Payment
@@ -350,13 +359,8 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
-                </div>
 
-            </main>
-        </transition>
-
-        <!-- 🚨 新增：学生成绩提交区 -->
+                        <!-- 🚨 学生测验成绩展示区域 (移动到了这里，彻底解决乱跑问题) -->
                         <div class="admin-panel" style="margin-top: 40px;">
                             <h3><i class="fas fa-graduation-cap"></i> Recent Quiz Submissions</h3>
                             <table class="admin-table">
@@ -374,7 +378,10 @@
                             </table>
                         </div>
 
-        <!-- 10. FORUM VIEW (定时刷新版 - 纯HTTP无Socket) -->
+                    </div>
+                </div>
+
+                <!-- 10. FORUM VIEW -->
                 <div v-else-if="currentView === 'forum'" class="page-section bg-light">
                     <div class="container" style="max-width: 800px;">
                         <div class="section-header">
@@ -382,27 +389,22 @@
                             <p>Chat with your peers and instructors.</p>
                         </div>
                         
-                        <!-- 聊天容器主体 -->
                         <div class="forum-container" style="background: white; border-radius: 12px; box-shadow: var(--shadow-md); overflow: hidden; border: 1px solid var(--border-color);">
                             
-                            <!-- 聊天记录显示区 -->
                             <div class="chat-box" id="chat-box" style="height: 450px; overflow-y: auto; padding: 20px; background: #fdfdfd; display: flex; flex-direction: column;">
                                 
                                 <div v-if="messages.length === 0" style="text-align:center; color:#888; margin-top:20px;">
                                     No messages yet. Be the first to say hi!
                                 </div>
                                 
-                                <!-- 循环渲染消息 -->
                                 <div v-for="msg in messages" :key="msg.id" class="message-wrapper" 
                                      :style="{ display: 'flex', flexDirection: 'column', alignItems: currentUser && currentUser.name === msg.user_name ? 'flex-end' : 'flex-start', marginBottom: '15px' }">
                                     
-                                    <!-- 发送者名字和时间 -->
                                     <div class="message-info" style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">
                                         <span class="sender" style="font-weight: 700; color: var(--brand-magenta);">{{ msg.user_name }}</span>
                                         <span class="time" style="margin-left: 8px;">{{ new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}</span>
                                     </div>
                                     
-                                    <!-- 聊天气泡 -->
                                     <div class="message-bubble" 
                                          :style="{ 
                                             background: currentUser && currentUser.name === msg.user_name ? 'var(--brand-magenta)' : '#eef2f5', 
@@ -418,7 +420,6 @@
                                 </div>
                             </div>
                             
-                            <!-- 输入框区域 -->
                             <div class="chat-input-area" style="display: flex; padding: 15px; background: white; border-top: 1px solid #eee; gap: 10px; align-items: center;">
                                 <input type="text" v-model="newForumMessage" @keyup.enter="sendForumMessage" placeholder="Type your message here..." 
                                        style="flex: 1; padding: 12px 15px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-size: 1rem; transition: border-color 0.3s;"
@@ -434,7 +435,7 @@
                     </div>
                 </div>
 
-                <!-- 11. 🚨 全新: "MY LEARNING" VIEW 🚨 -->
+                <!-- 11. MY LEARNING VIEW -->
                 <div v-else-if="currentView === 'my-learning' && currentUser" class="page-section">
                     <div class="container">
                         <div class="section-header">
@@ -447,12 +448,10 @@
                         </div>
                         
                         <div class="list-grid" v-else>
-                            <!-- 循环显示已购买的项目 -->
                             <div class="list-card" v-for="item in myLearningItems" :key="item.id + item.type">
-                                <div class="card-img" :style="{ backgroundImage: 'url(' + (item.img || item.cover_image_url) + ')' }"></div>
+                                <div class="card-img" :style="{ backgroundImage: 'url(' + getSafeImageUrl(item.img || item.cover_image_url) + ')' }"></div>
                                 <div class="card-body">
                                     <h4>{{ item.title }}</h4>
-                                    <!-- 显示资源链接 -->
                                     <div class="learning-links">
                                         <a v-if="item.video_url" :href="item.video_url.startsWith('http') ? item.video_url : BACKEND_URL + item.video_url" target="_blank" class="link-btn video">
                                             <i class="fas fa-play-circle"></i> Watch Video
@@ -467,7 +466,6 @@
                                             <i class="fas fa-question-circle"></i> Take Quiz
                                         </a>
                                     </div>
-                                    <!-- 提交成绩的表单 -->
                                     <div v-if="item.quiz_url" class="quiz-submit-form">
                                         <input type="text" v-model="quizScoreForm[item.id]" placeholder="Enter score (e.g., 85%)">
                                         <button @click="submitQuizScore(item)">Submit</button>
@@ -477,6 +475,9 @@
                         </div>
                     </div>
                 </div>
+
+            </main>
+        </transition>
 
         <!-- ================= Footer ================= -->
         <footer class="footer">
@@ -645,21 +646,18 @@
         <!-- ================= 真正的管理员添加数据弹窗 (Admin Form Modal) ================= -->
         <transition name="page-fade">
             <div class="checkout-modal-wrapper" v-if="showAdminModal">
-                <!-- 🚨 替换开始：加宽了弹窗，并加入了 Tab 结构 -->
                 <div class="checkout-modal" style="max-width: 600px;">
                     <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Add New {{ adminFormType }}</h3>
                     
-                    <!-- 全新的 Tab 导航栏 -->
                     <div class="admin-tabs" v-if="adminFormType !== 'Event'">
                         <button :class="{ active: currentAdminTab === 'Basic' }" @click="currentAdminTab = 'Basic'">Basic Info</button>
                         <button :class="{ active: currentAdminTab === 'Materials' }" @click="currentAdminTab = 'Materials'" v-if="adminFormType !== 'News'">Materials</button>
                         <button :class="{ active: currentAdminTab === 'Details' }" @click="currentAdminTab = 'Details'">Details</button>
                     </div>
 
-                    <!-- 表单内容区 -->
                     <div class="admin-tab-content">
                         
-                        <!-- Event (日历事件) 的专属表单，没有 Tab -->
+                        <!-- Event 表单 -->
                         <template v-if="adminFormType === 'Event'">
                             <div class="form-group"><label>Title / Name</label><input type="text" v-model="adminFormData.title" class="input-field"></div>
                             <div class="form-group"><label>Event Date</label><input type="date" v-model="adminFormData.event_date" class="input-field"></div>
@@ -670,7 +668,7 @@
                             <div class="form-group"><label>Event Details</label><textarea v-model="adminFormData.extra" class="input-field" rows="3"></textarea></div>
                         </template>
 
-                        <!-- 非 Event：Tab 1: 基础信息 -->
+                        <!-- Tab 1: 基础信息 -->
                         <div v-show="adminFormType !== 'Event' && currentAdminTab === 'Basic'">
                             <div class="form-group">
                                 <label>Title / Name</label>
@@ -688,7 +686,7 @@
                             </div>
                         </div>
 
-                        <!-- 非 Event：Tab 2: 学习资料 -->
+                        <!-- Tab 2: 学习资料 -->
                         <div v-show="adminFormType !== 'Event' && currentAdminTab === 'Materials'">
                             <div v-if="adminFormType === 'Book'">
                                 <div class="form-group">
@@ -713,9 +711,8 @@
                             </div>
                         </div>
 
-                        <!-- 非 Event：Tab 3: 详细信息 -->
+                        <!-- Tab 3: 详细信息 -->
                         <div v-show="adminFormType !== 'Event' && currentAdminTab === 'Details'">
-                            
                             <!-- 🚨 这是新增的学位选择下拉框 -->
                             <div class="form-group" v-if="adminFormType !== 'News'">
                                 <label>Target Student Level</label>
@@ -752,13 +749,11 @@
                         </div>
                     </div>
 
-                    <!-- 底部的按钮 -->
                     <div style="display:flex; gap:10px; margin-top:20px; border-top: 1px solid #eee; padding-top: 20px;">
                         <button class="outline-btn" style="flex:1;" @click="showAdminModal = false">Cancel</button>
                         <button class="submit-btn" style="flex:1; background-color: var(--brand-magenta); border:none; color:white; font-weight:bold; cursor:pointer;" @click="submitAdminForm">Save</button>
                     </div>
                 </div>
-                <!-- 🚨 替换结束 -->
             </div>
         </transition>
 
@@ -770,13 +765,11 @@
                     
                     <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Search our Site</h3>
                     
-                    <!-- 🚨 1. 找回来的搜索输入框 -->
                     <div class="search-bar" style="display: flex; gap: 10px; margin-bottom: 25px;">
                         <input type="text" v-model="searchQuery" @keyup.enter="handleSearch" class="input-field" placeholder="Search for books, courses, or resources...">
                         <button class="submit-btn" @click="handleSearch" style="background: var(--brand-magenta); color: white; border: none; padding: 0 25px; border-radius: 4px; font-weight: bold; cursor: pointer;">Search</button>
                     </div>
 
-                    <!-- 🚨 2. 之前加的二次过滤器 -->
                     <div v-if="searchResults.length > 0" class="filter-group" style="margin-bottom: 20px; justify-content: center;">
                         <button class="filter-btn" :class="{ active: searchFilter === 'All' }" @click="setSearchFilter('All')">All</button>
                         <button class="filter-btn" :class="{ active: searchFilter === 'Course' }" @click="setSearchFilter('Course')">Courses</button>
@@ -784,17 +777,14 @@
                         <button class="filter-btn" :class="{ active: searchFilter === 'Resource' }" @click="setSearchFilter('Resource')">Resources</button>
                     </div>
 
-                    <!-- 🚨 3. 找回来的搜索结果列表 -->
                     <div class="search-results-list">
                         <div v-if="isSearching" style="text-align: center; padding: 20px;">
                             <i class="fas fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--brand-magenta);"></i>
                         </div>
-                        
                         <div v-else-if="noResultsFound" class="not-found-msg">
                             <i class="fas fa-exclamation-circle"></i>
                             <p>No results found for "<strong>{{ searchQuery }}</strong>"</p>
                         </div>
-                        
                         <div v-else>
                             <div v-for="item in filteredSearchResults" :key="item.id + item.type" class="search-result-item" @click="goToResult(item)">
                                 <img :src="item.img || 'https://via.placeholder.com/100x70.png?text=No+Image'" alt="Result Image">
