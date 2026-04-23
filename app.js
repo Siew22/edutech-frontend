@@ -427,6 +427,11 @@ createApp({
             const file = event.target.files[0];
             if (!file) return;
 
+            // 🚨 魔法 1：如果是封面图(img)，立刻生成一个本地临时预览，不需要等上传
+            if (fieldToUpdate === 'img') {
+                this.adminFormData.previewImg = URL.createObjectURL(file);
+            }
+
             this.isUploading = true;
             const formData = new FormData();
             formData.append('media', file);
@@ -441,10 +446,13 @@ createApp({
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message);
                 
-                // 把后端返回的【相对路径】存到表单的指定字段里
+                // 🚨 魔法 2：保存后端返回的相对路径
                 this.adminFormData[fieldToUpdate] = data.path; 
                 
-                alert(`${fieldToUpdate} uploaded successfully! Path: ${data.path}`);
+                // 如果不是图片（比如PDF），给个提示
+                if (fieldToUpdate !== 'img') {
+                    alert(`${fieldToUpdate} uploaded successfully!`);
+                }
             } catch (error) {
                 alert(`Upload error: ${error.message}`);
             } finally {

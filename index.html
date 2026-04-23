@@ -650,7 +650,7 @@
                                 <label>Cover Image (Upload)</label>
                                 <input type="file" class="input-field" accept="image/*" @change="handleFileUpload($event, 'img')">
                                 <div v-if="isUploading" style="color: var(--brand-magenta); font-size: 0.9rem; margin-top: 5px;"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
-                                <img v-if="adminFormData.img" :src="adminFormData.previewImg || adminFormData.img" style="margin-top: 10px; width: 80px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
+                                <img v-if="adminFormData.previewImg || adminFormData.img" :src="adminFormData.previewImg ? adminFormData.previewImg : (adminFormData.img.startsWith('http') ? adminFormData.img : BACKEND_URL + adminFormData.img)" style="margin-top: 10px; width: 100px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
                             </div>
                         </div>
 
