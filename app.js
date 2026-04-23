@@ -35,7 +35,7 @@ createApp({
             selectedPaymentMethod: null, 
             adminFormType: 'Book',
             currentAdminTab: 'Basic', 
-            adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null, targetLevel: 'All' },
+            adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null, targetLevel: 'All', video_url: '', tutorial_pdf_url: '', quiz_url: '', softcopy_pdf_url: '' },
             loginForm: { email: '', password: '' },
             registerForm: { name: '', email: '', password: '' },
             checkoutForm: { address: '', country: '', shippingMethod: 'Ship' },
@@ -194,51 +194,35 @@ createApp({
         async fetchMyLearning() {
             if (!this.currentUser) return;
             try {
-                const res = await fetch(`${BACKEND_URL}/api/my-learning?userId=${this.currentUser.id}`, { 
-                    headers: { 'ngrok-skip-browser-warning': 'true' } 
-                });
+                const res = await fetch(`${BACKEND_URL}/api/my-learning?userId=${this.currentUser.id}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
                 this.myLearningItems = await res.json();
-            } catch (error) {
-                console.error("Failed to fetch my learning items:", error);
-            }
+            } catch (error) { console.error("Failed to fetch my learning items:", error); }
         },
-
+        
         async submitQuizScore(item) {
             const score = this.quizScoreForm[item.id];
             if (!score || !score.trim()) return alert("Please enter your score!");
-            
             try {
                 const response = await fetch(`${BACKEND_URL}/api/quiz/submit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({
-                        userId: this.currentUser.id,
-                        userName: this.currentUser.name,
-                        itemId: item.id,
-                        itemTitle: item.title,
-                        itemType: item.type,
-                        score: score
-                    })
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.message);
-                alert('Your score has been submitted!');
-                this.quizScoreForm[item.id] = '';
-                this.fetchQuizSubmissions();
-            } catch (error) {
-                alert(`Submission failed: ${error.message}`);
-            }
-        },
-
-        async fetchQuizSubmissions() {
-            if (!this.isAdmin) return;
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/quiz/submissions`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-                this.quizSubmissions = await res.json();
-            } catch (error) {
-                console.error("Failed to fetch submissions:", error);
-            }
-        },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+            body: JSON.stringify({ userId: this.currentUser.id, userName: this.currentUser.name, itemId: item.id, itemTitle: item.title, itemType: item.type, score: score })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message);
+        alert('Your score has been submitted!');
+        this.quizScoreForm[item.id] = '';
+        this.fetchQuizSubmissions(); // Admin实时刷新
+        } catch (error) { alert(`Submission failed: ${error.message}`); }
+    },
+    
+    async fetchQuizSubmissions() {
+        if (!this.isAdmin) return;
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/quiz/submissions`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+            this.quizSubmissions = await res.json();
+        } catch (error) { console.error("Failed to fetch submissions:", error); }
+    },
 
         async handleSearch() {
             if (!this.searchQuery.trim()) return;
@@ -292,6 +276,11 @@ createApp({
             this.currentView = viewName;
             this.isCartOpen = false; 
             window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            
+            // 🚨 关键：每次进入“我的学习”页面都重新拉取数据
+            if (viewName === 'my-learning') {
+                this.fetchMyLearning();
+            }
         },
 
         prevMonth() {
@@ -449,8 +438,7 @@ createApp({
         async handleLogin() {
             const email = this.loginForm.email.trim().toLowerCase();
             if (!email.endsWith('@gmail.com') && !email.endsWith('@edutech.com')) {
-                alert('Login Failed: Invalid domain. Only @gmail.com or @edutech.com exist in our system.');
-                return;
+                return alert('Login Failed: Invalid domain. Only @gmail.com or @edutech.com exist in our system.');
             }
             try {
                 const response = await fetch(`${BACKEND_URL}/api/login`, {
@@ -460,17 +448,18 @@ createApp({
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message);
-
+                
                 this.currentUser = data; 
                 this.loginForm = { email: '', password: '' }; 
-
+                
                 if (this.isAdmin) {
                     alert('Welcome, Admin! Redirecting to dashboard.');
                     this.fetchOrders(); 
-                    this.fetchQuizSubmissions();
+                    this.fetchQuizSubmissions(); // 🚨 添加这行
                     this.changeView('admin-dashboard');
                 } else {
                     alert(`Welcome back, ${this.currentUser.name}!`);
+                    this.fetchMyLearning(); // 🚨 添加这行
                     this.changeView('home');
                 }
             } catch (error) {

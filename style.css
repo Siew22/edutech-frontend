@@ -496,54 +496,21 @@ select.input-field { appearance: auto; cursor: pointer; }
 }
 /* --- "My Learning" 页面专属样式 --- */
 .learning-links { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-.link-btn {
-display: block; text-align: center; padding: 10px; border-radius: 5px;
-font-weight: 600; text-decoration: none; transition: all 0.3s;
-}
+.link-btn { display: block; text-align: center; padding: 10px; border-radius: 5px; font-weight: 600; text-decoration: none; transition: all 0.3s; }
 .link-btn:hover { transform: scale(1.05); }
 .link-btn.video { background: #c4302b; color: white; }
 .link-btn.pdf { background: #007bff; color: white; }
 .link-btn.quiz { background: #28a745; color: white; }
-.quiz-submit-form {
-margin-top: 15px; display: flex; gap: 5px;
-}
+.quiz-submit-form { margin-top: 15px; display: flex; gap: 5px; }
 .quiz-submit-form input { flex: 1; border: 1px solid #ccc; padding: 8px; border-radius: 4px; }
-.quiz-submit-form button {
-background: #333; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer;
-}
+.quiz-submit-form button { background: #333; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer; }
 /* --- Admin 弹窗的 Tab 样式 --- */
-.admin-tabs {
-    display: flex;
-    border-bottom: 2px solid #eee;
-    margin-bottom: 20px;
-}
-
-.admin-tabs button {
-    flex: 1;
-    background: none;
-    border: none;
-    padding: 12px 15px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #888;
-    cursor: pointer;
-    position: relative;
-    border-bottom: 3px solid transparent;
-    transition: color 0.3s;
-}
-
-.admin-tabs button:hover {
-    color: var(--brand-magenta);
-}
-
-.admin-tabs button.active {
-    color: var(--brand-magenta);
-    border-bottom-color: var(--brand-magenta);
-}
-
-.admin-tab-content {
-    min-height: 250px; /* 防止切换时弹窗抖动 */
-}
+/* --- Admin 弹窗的 Tab 样式 --- */
+.admin-tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+.admin-tabs button { flex: 1; background: none; border: none; padding: 12px 15px; font-size: 0.95rem; font-weight: 700; color: #888; cursor: pointer; position: relative; border-bottom: 3px solid transparent; transition: color 0.3s; }
+.admin-tabs button:hover { color: var(--brand-magenta); }
+.admin-tabs button.active { color: var(--brand-magenta); border-bottom-color: var(--brand-magenta); }
+.admin-tab-content { min-height: 250px; }
 /* 学位等级标签 */
 .level-badge {
     font-size: 0.8rem;
