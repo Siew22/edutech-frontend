@@ -165,7 +165,7 @@
                         </div>
                         <div class="list-grid">
                             <div class="list-card" v-for="item in (currentView === 'courses' ? coursesData : resourcesData)" :key="item.id">
-                                <div class="card-img" :style="{ backgroundImage: 'url(' + (item.img || 'https://via.placeholder.com/500x300.png?text=No+Image') + ')' }">
+                                <div class="card-img" :style="{ backgroundImage: 'url(' + (item.img ? (item.img.startsWith('http') || item.img.startsWith('blob:') ? item.img : BACKEND_URL + item.img) : 'https://via.placeholder.com/500x300') + ')' }">
                                 </div>
                                 <div class="card-body">
                                     <h4>{{ item.title }}</h4>
@@ -301,17 +301,28 @@
                             <h3><i class="fas fa-box"></i> Recent Orders</h3>
                             <table class="admin-table">
                                 <thead>
-                                    <tr><th>Order ID</th><th>Buyer Name</th><th>Location</th><th>Total</th><th>Payment Method</th><th>Shipping</th><th>Date</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="order in orders" :key="order.id">
-                                        <td style="font-weight: bold;">ORD-{{ order.id }}</td>
+                                    <!-- 表头 -->
+                                     <tr><th>Order ID</th><th>Buyer</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+                                     
+                                     <!-- 表身 (tr 循环里) -->
+                                      <tr v-for="order in orders" :key="order.id">
+                                        <td>ORD-{{ order.id }}</td>
                                         <td>{{ order.buyer }}</td>
-                                        <td>{{ order.country }}</td>
-                                        <td style="color: var(--brand-magenta); font-weight: bold;">RM{{ order.total_amount }}</td>
-                                        <td style="font-weight:600; color:#555;"><i class="fas fa-credit-card"></i> {{ order.payment_method }}</td>
-                                        <td><span class="ship-badge" :class="order.shipping_method === 'Plane' ? 'badge-plane' : 'badge-ship'"><i :class="order.shipping_method === 'Plane' ? 'fas fa-plane' : 'fas fa-ship'"></i> {{ order.shipping_method }}</span></td>
-                                        <td>{{ new Date(order.order_date).toLocaleDateString() }}</td>
+                                        <td>RM{{ order.total_amount }}</td>
+                                        <td>
+                                            
+                                            <span :style="{ color: order.status === 'Completed' ? 'green' : 'orange', fontWeight: 'bold' }">
+                                                {{ order.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <!-- 如果是 Pending 状态，显示确认按钮 -->
+                                             <button v-if="order.status === 'Pending'" 
+                                             @click="updateOrderStatus(order.id, 'Completed')"
+                                             style="background:green; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;"> Confirm Payment
+                                            </button>
+                                            <span v-else>✅ Approved</span>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -556,7 +567,7 @@
                 <div class="checkout-modal" style="max-width: 600px;">
                     <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">{{ selectedItem.title }}</h3>
                     
-                    <img v-if="selectedItem.img" :src="selectedItem.img" style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                    <img v-if="selectedItem.img" :src="selectedItem.img.startsWith('http') || selectedItem.img.startsWith('blob:') ? selectedItem.img : BACKEND_URL + selectedItem.img" style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
                     
                     <div style="display: flex; gap: 20px; margin-bottom: 15px; color: #555;">
                         <p><i class="far fa-clock"></i> <strong>Duration:</strong> {{ selectedItem.duration }}</p>

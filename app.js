@@ -176,6 +176,19 @@ createApp({
         }
     },
     methods: {
+
+        async updateOrderStatus(orderId, status) {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/order-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ orderId, newStatus: status })
+                });
+                const data = await res.json();
+                alert(data.message);
+                this.fetchOrders(); // 刷新订单列表
+            } catch (e) { console.error(e); }
+        },
         // ================= 数据拉取 =================
         async fetchAllData() {
             const headers = { 'ngrok-skip-browser-warning': 'true' };
@@ -410,10 +423,19 @@ createApp({
         },
 
         // 🚨 修复：补回点击 More Details 唤醒弹窗的方法！
-        viewItemDetails(item) {
-            this.selectedItem = item;    // 记录你点的是哪个课程
-            this.showItemModal = true;   // 打开弹窗
-        },
+        async viewItemDetails(item) {
+            // 🚨 魔法：如果图片是相对路径或者是 ngrok 的，先转换成安全的 Blob
+            if (item.img && (item.img.includes('uploads') || item.img.includes('ngrok-free.dev'))) {
+                const url = item.img.startsWith('http') ? item.img : BACKEND_URL + item.img;
+                try {
+                    const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                    const blob = await res.blob();
+                    item.img = URL.createObjectURL(blob); // 转换成浏览器直接能看的本地缓存
+                    } catch (e) { console.error("Image conversion failed", e); }
+                }
+                this.selectedItem = item;
+                this.showItemModal = true;
+            },
 
         viewEventDetails(evt) {
             this.selectedEvent = evt;      // 把点击的事件数据存起来
