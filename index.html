@@ -165,7 +165,7 @@
                         </div>
                         <div class="list-grid">
                             <div class="list-card" v-for="item in (currentView === 'courses' ? coursesData : resourcesData)" :key="item.id">
-                                <div class="card-img" :style="{ backgroundImage: 'url(' + (item.img ? (item.img.startsWith('http') || item.img.startsWith('blob:') ? item.img : BACKEND_URL + item.img) : 'https://via.placeholder.com/500x300') + ')' }">
+                                <div class="card-img" :style="{ backgroundImage: 'url(' + getSafeImageUrl(item.img) + ')' }"></div>
                                 </div>
                                 <div class="card-body">
                                     <h4>{{ item.title }}</h4>
@@ -195,7 +195,7 @@
                         </div>
                         <div class="book-grid">
                             <div class="book-card" v-for="book in books" :key="book.id">
-                                <div class="book-img-wrapper"><img :src="book.cover_image_url" alt="Book Cover"></div>
+                                <div class="book-img-wrapper"><img :src="getSafeImageUrl(book.cover_image_url)" alt="Book Cover"></div>
                                 <div class="book-info">
                                     <span class="category">{{ book.category }}</span>
                                     <h4>{{ book.title }}</h4>
@@ -567,9 +567,7 @@
                 <div class="checkout-modal" style="max-width: 600px;">
                     <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">{{ selectedItem.title }}</h3>
                     
-                    <img v-if="selectedItem.img || selectedItem.cover_image_url" 
-                    :src="selectedItem.img || selectedItem.cover_image_url" 
-                    style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                    <img v-if="selectedItem.img || selectedItem.cover_image_url" :src="getSafeImageUrl(selectedItem.img || selectedItem.cover_image_url)" style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
                     
                     <div style="display: flex; gap: 20px; margin-bottom: 15px; color: #555;">
                         <p><i class="far fa-clock"></i> <strong>Duration:</strong> {{ selectedItem.duration }}</p>

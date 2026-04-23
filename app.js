@@ -176,7 +176,26 @@ createApp({
         }
     },
     methods: {
+        // 🚨 终极全局图片路径修复工具
+        getSafeImageUrl(path) {
+            // 1. 如果没有图，给个默认占位图
+            if (!path) return 'https://via.placeholder.com/500x300.png?text=No+Image';
+            
+            // 2. 如果已经是完整的外网 http 或者本地 blob 预览图，直接返回
+            if (path.startsWith('http') || path.startsWith('blob:')) return path;
 
+            // 3. 修复历史遗留问题：如果前面漏了 'uploads'，帮它补上
+            let cleanPath = path;
+            if (!cleanPath.includes('uploads')) {
+                cleanPath = '/uploads/' + cleanPath;
+            }
+            if (!cleanPath.startsWith('/')) {
+                cleanPath = '/' + cleanPath;
+            }
+            
+            // 4. 拼接上后端的真实 Ngrok 地址
+            return BACKEND_URL + cleanPath;
+        },
         async updateOrderStatus(orderId, status) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/admin/order-status`, {
