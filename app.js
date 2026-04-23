@@ -210,13 +210,15 @@ createApp({
                 const rawCourses = await coursesRes.json();
                 const rawResources = await resourcesRes.json();
                 const rawNews = await newsRes.json();
-                this.eventsData = await eventsRes.json();
+                const rawEvents = await eventsRes.json(); // 🚨 改成了 rawEvents
 
                 // 🚨 魔法回归：数据拉下来后，立刻派特工去把所有图片下载转码！
                 this.books = await Promise.all(rawBooks.map(async b => ({...b, cover_image_url: await this.fetchImageAsBlob(b.cover_image_url)})));
                 this.coursesData = await Promise.all(rawCourses.map(async c => ({...c, img: await this.fetchImageAsBlob(c.img)})));
                 this.resourcesData = await Promise.all(rawResources.map(async r => ({...r, img: await this.fetchImageAsBlob(r.img)})));
                 this.newsData = await Promise.all(rawNews.map(async n => ({...n, img: await this.fetchImageAsBlob(n.img)})));
+                // 🚨 漏掉的拼图补上了：日历事件的图片也必须派特工去下载！
+                this.eventsData = await Promise.all(rawEvents.map(async e => ({...e, img: await this.fetchImageAsBlob(e.img)})));
 
             } catch (error) {
                 console.error("Error fetching data:", error);

@@ -209,7 +209,17 @@ ul { list-style: none; }
 
 /* 结账弹窗 */
 .checkout-modal-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1100; display: flex; justify-content: center; align-items: center; }
-.checkout-modal { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 12px; box-shadow: var(--shadow-md); }
+.checkout-modal { 
+    background: white; 
+    width: 90%; 
+    max-width: 500px; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: var(--shadow-md); 
+    /* 🚨 核心修复：限制弹窗最高只能占屏幕的 90%，超出部分出现下拉滚动条 */
+    max-height: 90vh; 
+    overflow-y: auto; 
+}
 select.input-field { appearance: auto; cursor: pointer; }
 
 /* 支付方式网格布局 */
