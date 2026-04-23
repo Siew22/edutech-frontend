@@ -662,9 +662,15 @@
                             <div v-if="isUploading && adminFormData.img"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
                             <img v-if="adminFormData.previewImg || adminFormData.img" :src="adminFormData.previewImg || getSafeImageUrl(adminFormData.img)" style="margin-top: 10px; width: 100px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
                         </div>
+                        <!-- 简短摘要：显示在外面的卡片上 -->
                         <div class="form-group">
-                            <label>Short Excerpt / Content</label>
-                            <textarea v-model="adminFormData.extra" class="input-field" rows="4"></textarea>
+                            <label>Short Excerpt (Shows on list)</label>
+                            <textarea v-model="adminFormData.extra" class="input-field" rows="2" placeholder="Write a 1-2 sentence summary..."></textarea>
+                        </div>
+                        <!-- 完整内容：点击 Read full story 后显示 -->
+                        <div class="form-group">
+                            <label>Full Content (Shows on details page)</label>
+                            <textarea v-model="adminFormData.description" class="input-field" rows="6" placeholder="Write the complete news story here..."></textarea>
                         </div>
                     </template>
 
