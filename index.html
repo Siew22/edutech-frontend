@@ -651,15 +651,32 @@
                     <div class="admin-tab-content">
                         
                         <!-- Event 表单 -->
-                        <template v-if="adminFormType === 'Event'">
-                            <div class="form-group"><label>Title / Name</label><input type="text" v-model="adminFormData.title" class="input-field"></div>
-                            <div class="form-group"><label>Event Date</label><input type="date" v-model="adminFormData.event_date" class="input-field"></div>
-                            <div style="display:flex; gap:10px;">
-                                <div class="form-group" style="flex:1;"><label>Start Time</label><input type="time" v-model="adminFormData.start_time" class="input-field"></div>
-                                <div class="form-group" style="flex:1;"><label>End Time</label><input type="time" v-model="adminFormData.end_time" class="input-field"></div>
-                            </div>
-                            <div class="form-group"><label>Event Details</label><textarea v-model="adminFormData.extra" class="input-field" rows="3"></textarea></div>
-                        </template>
+                        <template v-if="adminFormType === 'News'">
+                        <div class="form-group">
+                            <label>News Title</label>
+                            <input type="text" v-model="adminFormData.title" class="input-field">
+                        </div>
+                        <div class="form-group">
+                            <label>Cover Image (Upload)</label>
+                            <input type="file" class="input-field" accept="image/*" @change="handleFileUpload($event, 'img')">
+                            <div v-if="isUploading && adminFormData.img"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
+                            <img v-if="adminFormData.previewImg || adminFormData.img" :src="adminFormData.previewImg || getSafeImageUrl(adminFormData.img)" style="margin-top: 10px; width: 100px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
+                        </div>
+                        <div class="form-group">
+                            <label>Short Excerpt / Content</label>
+                            <textarea v-model="adminFormData.extra" class="input-field" rows="4"></textarea>
+                        </div>
+                    </template>
+
+                    <template v-if="adminFormType === 'Event'">
+                        <div class="form-group"><label>Event Title / Name</label><input type="text" v-model="adminFormData.title" class="input-field"></div>
+                        <div class="form-group"><label>Event Date</label><input type="date" v-model="adminFormData.event_date" class="input-field"></div>
+                        <div style="display:flex; gap:10px;">
+                            <div class="form-group" style="flex:1;"><label>Start Time</label><input type="time" v-model="adminFormData.start_time" class="input-field"></div>
+                            <div class="form-group" style="flex:1;"><label>End Time</label><input type="time" v-model="adminFormData.end_time" class="input-field"></div>
+                        </div>
+                        <div class="form-group"><label>Event Details</label><textarea v-model="adminFormData.extra" class="input-field" rows="3"></textarea></div>
+                    </template>
 
                         <!-- Tab 1: 基础信息 -->
                         <div v-show="currentAdminTab === 'Basic' && adminFormType !== 'Event' && adminFormType !== 'News'">
