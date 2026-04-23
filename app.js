@@ -422,20 +422,44 @@ createApp({
             }, 100);
         },
 
-        // 🚨 修复：补回点击 More Details 唤醒弹窗的方法！
+        // 查看课程/资源详情 (带终极图片修复魔法)
         async viewItemDetails(item) {
-            // 🚨 魔法：如果图片是相对路径或者是 ngrok 的，先转换成安全的 Blob
-            if (item.img && (item.img.includes('uploads') || item.img.includes('ngrok-free.dev'))) {
-                const url = item.img.startsWith('http') ? item.img : BACKEND_URL + item.img;
-                try {
-                    const res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-                    const blob = await res.blob();
-                    item.img = URL.createObjectURL(blob); // 转换成浏览器直接能看的本地缓存
-                    } catch (e) { console.error("Image conversion failed", e); }
+            // 1. 获取图片路径 (兼容 Course/Resource 和 Book)
+            let imagePath = item.img || item.cover_image_url;
+
+            // 2. 如果有图片，且不是外网 http 链接，也不是已经处理过的 blob 本地链接
+            if (imagePath && !imagePath.startsWith('http') && !imagePath.startsWith('blob:')) {
+                
+                // 🚨 终极路径修复术：防止数据库漏掉 '/uploads/'
+                if (!imagePath.includes('uploads')) {
+                    imagePath = '/uploads/' + imagePath;
                 }
-                this.selectedItem = item;
-                this.showItemModal = true;
-            },
+                if (!imagePath.startsWith('/')) {
+                    imagePath = '/' + imagePath;
+                }
+
+                // 🚨 绕过 Ngrok：用通行证下载图片，转为本地 Blob 缓存
+                try {
+                    const res = await fetch(BACKEND_URL + imagePath, { 
+                        headers: { 'ngrok-skip-browser-warning': 'true' } 
+                    });
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const safeUrl = URL.createObjectURL(blob);
+                        
+                        // 把安全的本地链接塞回对象里
+                        if (item.img) item.img = safeUrl;
+                        if (item.cover_image_url) item.cover_image_url = safeUrl;
+                    }
+                } catch (e) {
+                    console.error("Image extraction failed:", e);
+                }
+            }
+
+            // 3. 数据处理完毕，打开弹窗
+            this.selectedItem = item;
+            this.showItemModal = true;
+        },
 
         viewEventDetails(evt) {
             this.selectedEvent = evt;      // 把点击的事件数据存起来

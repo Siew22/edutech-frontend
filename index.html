@@ -567,7 +567,9 @@
                 <div class="checkout-modal" style="max-width: 600px;">
                     <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">{{ selectedItem.title }}</h3>
                     
-                    <img v-if="selectedItem.img" :src="selectedItem.img.startsWith('http') || selectedItem.img.startsWith('blob:') ? selectedItem.img : BACKEND_URL + selectedItem.img" style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                    <img v-if="selectedItem.img || selectedItem.cover_image_url" 
+                    :src="selectedItem.img || selectedItem.cover_image_url" 
+                    style="width: 100%; height: 250px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
                     
                     <div style="display: flex; gap: 20px; margin-bottom: 15px; color: #555;">
                         <p><i class="far fa-clock"></i> <strong>Duration:</strong> {{ selectedItem.duration }}</p>
