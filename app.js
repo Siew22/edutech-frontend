@@ -574,25 +574,37 @@ createApp({
         },
 
         // ================= 认证流程 (Auth) =================
-        async handleRegister() {
-            if (!this.registerForm.email.trim().toLowerCase().endsWith('@gmail.com')) {
-                alert('Registration Failed: Strictly only @gmail.com addresses are allowed.');
-                return; 
+        async handleLogin() {
+            const email = this.loginForm.email.trim().toLowerCase();
+            
+            // 🚨 前端拦截：如果不是这两种邮箱，连数据库都不用查了，直接拦截
+            if (!email.endsWith('@gmail.com') && !email.endsWith('@edutech.com')) {
+                alert('Login Failed: Invalid domain. Only @gmail.com or @edutech.com exist in our system.');
+                return;
             }
+
             try {
-                const response = await fetch(`${BACKEND_URL}/api/register`, {
+                const response = await fetch(`${BACKEND_URL}/api/login`, {
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify(this.registerForm)
+                    body: JSON.stringify(this.loginForm)
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.message);
-                
-                alert(data.message);
-                this.changeView('login');
-                this.registerForm = { name: '', email: '', password: '' }; 
+
+                this.currentUser = data; 
+                this.loginForm = { email: '', password: '' }; 
+
+                if (this.isAdmin) {
+                    alert('Welcome, Admin! Redirecting to dashboard.');
+                    this.fetchOrders(); 
+                    this.changeView('admin-dashboard');
+                } else {
+                    alert(`Welcome back, ${this.currentUser.name}!`);
+                    this.changeView('home');
+                }
             } catch (error) {
-                alert(`Registration Failed: ${error.message}`);
+                alert(`Login Failed: ${error.message}`);
             }
         },
         async handleLogin() {
