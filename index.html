@@ -193,8 +193,8 @@
                                     <p class="price">{{ item.price === 0 ? 'Free' : 'RM' + item.price }}</p>
                                     
                                      <button class="outline-btn" @click="viewItemDetails(item)">More details</button>
-                                     <button class="add-cart-btn" style="width: 100%; margin-top: 10px;" @click="addToCart(item, 'course')">
-                                        <i class="fas fa-plus"></i> Register Course
+                                     <button class="add-cart-btn" style="width: 100%; margin-top: 10px;" @click="addToCart(item, currentView === 'courses' ? 'course' : 'resource')">
+                                        <i class="fas fa-plus"></i> Register
                                     </button>
                                      <button class="admin-delete-btn" v-if="isAdmin" @click="adminDelete('Item', item.id)" style="margin-top: 5px;">
                                         <i class="fas fa-trash"></i> Delete
@@ -602,7 +602,7 @@
                     
                     <div style="display: flex; gap: 10px;">
                         <button class="outline-btn" style="flex: 1; padding: 12px; border-radius: 8px;" @click="showItemModal = false">Close</button>
-                        <button class="submit-btn" style="flex: 1; background: var(--brand-magenta); border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer;" @click="addToCart(selectedItem, 'course'); showItemModal = false;">
+                        <button class="submit-btn" style="flex: 1; background: var(--brand-magenta); border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer;" @click="addToCart(selectedItem, selectedItem.type ? selectedItem.type.toLowerCase() : (currentView === 'courses' ? 'course' : 'resource')); showItemModal = false;">
                             <i class="fas fa-plus"></i> Register Now
                         </button>
                     </div>

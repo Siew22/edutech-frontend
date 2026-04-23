@@ -157,6 +157,31 @@ createApp({
             return BACKEND_URL + cleanPath;
         },
 
+        async fetchImageAsBlob(imagePath) {
+            if (!imagePath) return 'https://via.placeholder.com/500x300.png?text=No+Image';
+            // 如果是外部图片 (比如 unsplash) 或者已经是本地缓存了，直接放行
+            if (imagePath.startsWith('http') && !imagePath.includes('ngrok-free.dev')) return imagePath; 
+            
+            let cleanPath = imagePath;
+            if (!cleanPath.startsWith('http')) {
+                if (!cleanPath.includes('uploads')) cleanPath = '/uploads/' + cleanPath;
+                if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
+                cleanPath = BACKEND_URL + cleanPath;
+            }
+
+            try {
+                // 核心：用 fetch 带着 header 通行证去下载图片
+                const res = await fetch(cleanPath, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    return URL.createObjectURL(blob); // 转换成本地浏览器绝对安全的链接
+                }
+            } catch (e) {
+                console.error("Image load error:", e);
+            }
+            return cleanPath;
+        },
+
         async updateOrderStatus(orderId, status) {
             try {
                 const res = await fetch(`${BACKEND_URL}/api/admin/order-status`, {
@@ -181,11 +206,18 @@ createApp({
                     fetch(`${BACKEND_URL}/api/events`, { headers })
                 ]);
                 
-                this.books = books;
-                this.coursesData = courses;
-                this.resourcesData = resources;
-                this.newsData = news;
+                const rawBooks = await booksRes.json();
+                const rawCourses = await coursesRes.json();
+                const rawResources = await resourcesRes.json();
+                const rawNews = await newsRes.json();
                 this.eventsData = await eventsRes.json();
+
+                // 🚨 魔法回归：数据拉下来后，立刻派特工去把所有图片下载转码！
+                this.books = await Promise.all(rawBooks.map(async b => ({...b, cover_image_url: await this.fetchImageAsBlob(b.cover_image_url)})));
+                this.coursesData = await Promise.all(rawCourses.map(async c => ({...c, img: await this.fetchImageAsBlob(c.img)})));
+                this.resourcesData = await Promise.all(rawResources.map(async r => ({...r, img: await this.fetchImageAsBlob(r.img)})));
+                this.newsData = await Promise.all(rawNews.map(async n => ({...n, img: await this.fetchImageAsBlob(n.img)})));
+
             } catch (error) {
                 console.error("Error fetching data:", error);
             }
@@ -195,8 +227,16 @@ createApp({
             if (!this.currentUser) return;
             try {
                 const res = await fetch(`${BACKEND_URL}/api/my-learning?userId=${this.currentUser.id}`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-                this.myLearningItems = await res.json();
-            } catch (error) { console.error("Failed to fetch my learning items:", error); }
+                const rawItems = await res.json();
+                
+                // 🚨 我的学习资料里的图片也要派特工去下载
+                this.myLearningItems = await Promise.all(rawItems.map(async item => {
+                    const imgKey = item.cover_image_url ? 'cover_image_url' : 'img';
+                    return { ...item,[imgKey]: await this.fetchImageAsBlob(item[imgKey]) };
+                }));
+            } catch (error) { 
+                console.error("Failed to fetch my learning items:", error); 
+            }
         },
         
         async submitQuizScore(item) {
@@ -249,7 +289,7 @@ createApp({
             }
         },
 
-        
+
 
         setSearchFilter(filter) {
             this.searchFilter = filter;
