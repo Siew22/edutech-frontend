@@ -25,6 +25,9 @@ createApp({
             courseFilter: 'All',
             resourceFilter: 'All',
             bookCategoryFilter: 'All',
+            myLearningItems: [],
+            quizSubmissions: [],
+            quizScoreForm: {}, // { itemId: '', score: '' }
 
             // --- 表单与暂存数据 ---
             selectedPaymentMethod: null, // 🚨 记录用户选了哪个 Bank/eWallet
@@ -200,6 +203,57 @@ createApp({
             }
         },
 
+        // ================= LMS (学习管理系统) 方法 =================
+        async fetchMyLearning() {
+            if (!this.currentUser) return;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/my-learning?userId=${this.currentUser.id}`, { 
+                    headers: { 'ngrok-skip-browser-warning': 'true' } 
+                });
+                this.myLearningItems = await res.json();
+            } catch (error) {
+                console.error("Failed to fetch my learning items:", error);
+            }
+        },
+
+        async submitQuizScore(item) {
+            const score = this.quizScoreForm[item.id];
+            if (!score || !score.trim()) {
+                return alert("Please enter your score!");
+            }
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/quiz/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({
+                        userId: this.currentUser.id,
+                        userName: this.currentUser.name,
+                        itemId: item.id,
+                        itemTitle: item.title,
+                        itemType: item.type,
+                        score: score
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+                alert('Your score has been submitted!');
+                this.quizScoreForm[item.id] = ''; // 清空输入框
+                this.fetchQuizSubmissions(); // Admin 实时刷新
+            } catch (error) {
+                alert(`Submission failed: ${error.message}`);
+            }
+        },
+
+        async fetchQuizSubmissions() {
+            if (!this.isAdmin) return;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/quiz/submissions`, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+                this.quizSubmissions = await res.json();
+            } catch (error) {
+                console.error("Failed to fetch submissions:", error);
+            }
+        },
+
         // ================= 搜索逻辑 =================
         async handleSearch() {
             if (!this.searchQuery.trim()) return;
@@ -366,16 +420,10 @@ createApp({
 
         // ================= 支付流程逻辑 (核心修改) =================
 
-        // 🚨🚨🚨 新增：处理本地图片上传的方法！🚨🚨🚨
-        async handleImageUpload(event) {
+        // 升级版：通用文件上传 (图片/视频/PDF)
+        async handleFileUpload(event, fieldToUpdate) {
             const file = event.target.files[0];
             if (!file) return;
-
-            if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
-                alert('Invalid file format. Please upload PNG or JPEG only!');
-                event.target.value = ''; 
-                return;
-            }
 
             this.isUploading = true;
             const formData = new FormData();
@@ -389,18 +437,14 @@ createApp({
                 });
                 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.message || 'Upload failed');
+                if (!response.ok) throw new Error(data.message);
                 
-                // 🚨 核心：不再自己拼接，直接使用后端返回的完整公网 URL
-                this.adminFormData.img = data.url; 
-                // 🚨 核心：为了立刻在框框里看到，使用刚选中的本地文件生成预览
-                this.adminFormData.previewImg = URL.createObjectURL(file);
+                // 把后端返回的【相对路径】存到表单的指定字段里
+                this.adminFormData[fieldToUpdate] = data.path; 
                 
-                alert('Image uploaded successfully!');
+                alert(`${fieldToUpdate} uploaded successfully! Path: ${data.path}`);
             } catch (error) {
-                console.error(error);
                 alert(`Upload error: ${error.message}`);
-                event.target.value = ''; 
             } finally {
                 this.isUploading = false;
             }

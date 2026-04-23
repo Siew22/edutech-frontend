@@ -19,6 +19,7 @@
                     <h1>EduTech</h1>
                 </div>
                 <ul class="nav-links">
+                    <li v-if="currentUser && !isAdmin"><a href="#" :class="{ active: currentView === 'my-learning' }" @click.prevent="changeView('my-learning')">My Learning</a></li>
                     <li><a href="#" :class="{ active: currentView === 'forum' }" @click.prevent="changeView('forum')">Forum</a></li>
                     <li><a href="#" :class="{ active: currentView === 'home' }" @click.prevent="changeView('home')">Home</a></li>
                     <li><a href="#" :class="{ active: currentView === 'calendar' }" @click.prevent="changeView('calendar')">Calendar</a></li>
@@ -321,6 +322,24 @@
             </main>
         </transition>
 
+        <!-- 🚨 新增：学生成绩提交区 -->
+                        <div class="admin-panel" style="margin-top: 40px;">
+                            <h3><i class="fas fa-graduation-cap"></i> Recent Quiz Submissions</h3>
+                            <table class="admin-table">
+                                <thead>
+                                    <tr><th>Student</th><th>Course/Resource</th><th>Score</th><th>Date</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="sub in quizSubmissions" :key="sub.id">
+                                        <td>{{ sub.user_name }}</td>
+                                        <td>{{ sub.item_title }}</td>
+                                        <td style="font-weight: bold; color: var(--brand-magenta);">{{ sub.score }}</td>
+                                        <td>{{ new Date(sub.submitted_at).toLocaleString() }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
         <!-- 10. FORUM VIEW (定时刷新版 - 纯HTTP无Socket) -->
                 <div v-else-if="currentView === 'forum'" class="page-section bg-light">
                     <div class="container" style="max-width: 800px;">
@@ -376,6 +395,50 @@
                                         onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
                                     <i class="fas fa-paper-plane"></i> Send
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 11. 🚨 全新: "MY LEARNING" VIEW 🚨 -->
+                <div v-else-if="currentView === 'my-learning' && currentUser" class="page-section">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2>My Learning Dashboard</h2>
+                            <p>Here are all the courses, books, and resources you have purchased.</p>
+                        </div>
+
+                        <div v-if="myLearningItems.length === 0" style="text-align:center; padding: 40px; background: white; border-radius: 12px;">
+                            You haven't purchased any items yet.
+                        </div>
+                        
+                        <div class="list-grid" v-else>
+                            <!-- 循环显示已购买的项目 -->
+                            <div class="list-card" v-for="item in myLearningItems" :key="item.id + item.type">
+                                <div class="card-img" :style="{ backgroundImage: 'url(' + (item.img || item.cover_image_url) + ')' }"></div>
+                                <div class="card-body">
+                                    <h4>{{ item.title }}</h4>
+                                    <!-- 显示资源链接 -->
+                                    <div class="learning-links">
+                                        <a v-if="item.video_url" :href="item.video_url.startsWith('http') ? item.video_url : BACKEND_URL + item.video_url" target="_blank" class="link-btn video">
+                                            <i class="fas fa-play-circle"></i> Watch Video
+                                        </a>
+                                        <a v-if="item.tutorial_pdf_url" :href="BACKEND_URL + item.tutorial_pdf_url" target="_blank" class="link-btn pdf">
+                                            <i class="fas fa-file-pdf"></i> Download Tutorial
+                                        </a>
+                                        <a v-if="item.softcopy_pdf_url" :href="BACKEND_URL + item.softcopy_pdf_url" target="_blank" class="link-btn pdf">
+                                            <i class="fas fa-book"></i> Download eBook
+                                        </a>
+                                        <a v-if="item.quiz_url" :href="item.quiz_url" target="_blank" class="link-btn quiz">
+                                            <i class="fas fa-question-circle"></i> Take Quiz
+                                        </a>
+                                    </div>
+                                    <!-- 提交成绩的表单 -->
+                                    <div v-if="item.quiz_url" class="quiz-submit-form">
+                                        <input type="text" v-model="quizScoreForm[item.id]" placeholder="Enter score (e.g., 85%)">
+                                        <button @click="submitQuizScore(item)">Submit</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -557,80 +620,60 @@
                     </div>
                     
                     <template v-if="adminFormType !== 'Event'">
-                        
-                        <!-- 价格 (Book, Course, Resource) -->
-                        <div class="form-group" v-if="adminFormType === 'Book' || adminFormType === 'Course' || adminFormType === 'Resource'">
-                            <label>Price (RM) - Leave 0 for Free</label>
-                            <input type="number" v-model="adminFormData.price" class="input-field" placeholder="0.00" step="0.01">
-                        </div>
-
-                        <!-- 图片上传框 -->
+                        <!-- 价格 -->
                         <div class="form-group">
-                            <label>Image URL (Required - Paste an online image link)</label>
-                            <input type="text" v-model="adminFormData.img" class="input-field" placeholder="https://images.unsplash.com/...">
-                            
-                            <label style="margin-top:10px; display:block; font-size:0.8rem; color:#888;">Or upload local file (May be blocked by free Ngrok):</label>
-                            <input type="file" class="input-field" accept="image/png, image/jpeg, image/jpg" @change="handleImageUpload" :disabled="isUploading">
-                            
-                            <div v-if="isUploading" style="color: var(--brand-magenta); font-weight: bold; font-size: 0.9rem; margin-top: 5px;">
-                                <i class="fas fa-spinner fa-spin"></i> Uploading... Please wait.
-                            </div>
-                            <div v-if="adminFormData.img && !isUploading" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-                                <span style="color: green; font-size: 0.9rem; font-weight: bold;"><i class="fas fa-check-circle"></i> Image Ready!</span>
-                                <img :src="adminFormData.previewImg || adminFormData.img" style="width: 80px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
-                            </div>
+                            <label>Price (RM) - Leave 0 for Free</label>
+                            <input type="number" v-model="adminFormData.price" class="input-field">
                         </div>
                         
-                        <!-- 🚨 书籍专有：Category -->
-                        <div class="form-group" v-if="adminFormType === 'Book'">
-                            <label>Category</label>
-                            <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. Music Theory">
+                        <!-- 封面图 -->
+                        <div class="form-group">
+                            <label>Cover Image (Upload)</label>
+                            <input type="file" class="input-field" accept="image/*" @change="handleFileUpload($event, 'img')">
                         </div>
 
-                        <!-- 🚨 课程专有：Category 下拉框 + Duration -->
-                        <div style="display:flex; gap:10px;" v-if="adminFormType === 'Course'">
-                            <div class="form-group" style="flex:1;">
+                        <!-- === 书籍专属字段 === -->
+                        <template v-if="adminFormType === 'Book'">
+                            <div class="form-group">
                                 <label>Category</label>
-                                <select v-model="adminFormData.category" class="input-field">
-                                    <option value="" disabled>Select Category...</option>
-                                    <option value="Degree">Degree</option>
-                                    <option value="Master">Master</option>
-                                    <option value="PhD">PhD</option>
-                                    <option value="Free">Free</option>
-                                    <option value="Diploma">Diploma</option>
-                                    <option value="Secondary School">Secondary School</option>
-                                    <option value="Primary School">Primary School</option>
-                                </select>
+                                <input type="text" v-model="adminFormData.category" class="input-field">
                             </div>
-                            <div class="form-group" style="flex:1;">
+                            <div class="form-group">
+                                <label>Softcopy (Upload PDF)</label>
+                                <input type="file" class="input-field" accept=".pdf" @change="handleFileUpload($event, 'softcopy_pdf_url')">
+                            </div>
+                        </template>
+
+                        <!-- === 课程/资源专属字段 === -->
+                        <template v-if="adminFormType === 'Course' || adminFormType === 'Resource'">
+                            <div class="form-group">
+                                <label>Category/Tag</label>
+                                <input type="text" v-model="adminFormData.category" class="input-field">
+                            </div>
+                            <div class="form-group">
                                 <label>Duration</label>
-                                <input type="text" v-model="adminFormData.duration" class="input-field" placeholder="e.g. 10 Hours">
+                                <input type="text" v-model="adminFormData.duration" class="input-field">
                             </div>
-                        </div>
-
-                        <!-- 🚨 资源专有：Category 文本框 + Duration (这就帮你找回来了！) -->
-                        <div style="display:flex; gap:10px;" v-if="adminFormType === 'Resource'">
-                            <div class="form-group" style="flex:1;">
-                                <label>Category (Tag)</label>
-                                <input type="text" v-model="adminFormData.category" class="input-field" placeholder="e.g. VIDEO">
+                            <div class="form-group">
+                                <label>Full Description</label>
+                                <textarea v-model="adminFormData.description" class="input-field" rows="3"></textarea>
                             </div>
-                            <div class="form-group" style="flex:1;">
-                                <label>Duration</label>
-                                <input type="text" v-model="adminFormData.duration" class="input-field" placeholder="e.g. 45 mins watch">
+                            <hr style="margin: 20px 0;">
+                            <h4 style="margin-bottom: 10px;">Learning Materials (Optional)</h4>
+                            <div class="form-group">
+                                <label>Teaching Video (Paste URL or Upload)</label>
+                                <input type="text" v-model="adminFormData.video_url" class="input-field" placeholder="https://youtube.com/...">
+                                <input type="file" class="input-field" accept="video/*" @change="handleFileUpload($event, 'video_url')" style="margin-top: 5px;">
                             </div>
-                        </div>
-
-                        <!-- 🚨 刚刚加上的：Course 和 Resource 专用的 Full Description 大文本框 -->
-                        <div class="form-group" v-if="adminFormType === 'Course' || adminFormType === 'Resource'">
-                            <label>Full Description</label>
-                            <textarea v-model="adminFormData.description" class="input-field" rows="4" placeholder="Enter detailed description here..."></textarea>
-                        </div>
-
-                        <!-- 新闻专有：短描述 -->
-                        <div class="form-group" v-if="adminFormType === 'News'">
-                            <label>Short Excerpt</label>
-                            <input type="text" v-model="adminFormData.extra" class="input-field" placeholder="Brief summary...">
-                        </div>
+                            <div class="form-group">
+                                <label>Tutorial Questions (Upload PDF)</label>
+                                <input type="file" class="input-field" accept=".pdf" @change="handleFileUpload($event, 'tutorial_pdf_url')">
+                            </div>
+                            <div class="form-group">
+                                <label>Quiz Link (e.g., Google Form)</label>
+                                <input type="text" v-model="adminFormData.quiz_url" class="input-field" placeholder="https://forms.gle/...">
+                            </div>
+                        </template>
                     </template>
 
                     <template v-if="adminFormType === 'Event'">
