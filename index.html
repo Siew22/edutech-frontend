@@ -611,14 +611,17 @@
         </transition>
 
         <!-- ================= 日历事件详情弹窗 (Event Details) ================= -->
-        <transition name="page-fade">
+         <transition name="page-fade">
             <div class="checkout-modal-wrapper" v-if="showEventModal && selectedEvent">
                 <div class="checkout-modal" style="max-width: 500px;">
                     <h3 style="color:var(--brand-magenta); margin-bottom: 15px;">
                         <i class="fas fa-calendar-check"></i> Event Details
                     </h3>
                     
-                    <div style="font-size: 1.1rem; margin-bottom: 20px; color: #333;">
+                    <!-- 🚨 新增：如果有照片就展示照片 -->
+                     <img v-if="selectedEvent.img" :src="getSafeImageUrl(selectedEvent.img)" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                     
+                     <div style="font-size: 1.1rem; margin-bottom: 20px; color: #333;">
                         <p style="margin-bottom: 10px;"><strong>Title:</strong> {{ selectedEvent.title }}</p>
                         <p style="margin-bottom: 10px;"><strong>Date:</strong> {{ selectedEvent.event_date.split('T')[0] }}</p>
                         <p style="margin-bottom: 10px;" v-if="selectedEvent.start_time && selectedEvent.end_time">
@@ -631,7 +634,14 @@
                         {{ selectedEvent.details || 'No additional details provided for this event.' }}
                     </div>
                     
-                    <button class="outline-btn" style="width:100%; padding: 12px; font-size: 1.05rem; border-radius: 8px;" @click="showEventModal = false">Close</button>
+                    <!-- 🚨 底部按钮排版调整：加上报名按钮 -->
+                     <div style="display: flex; gap: 10px;">
+                        <button class="outline-btn" style="flex: 1; padding: 12px; font-size: 1.05rem; border-radius: 8px;" @click="showEventModal = false">Close</button>
+                        
+                        <a v-if="selectedEvent.apply_url" :href="selectedEvent.apply_url" target="_blank" class="submit-btn" style="flex: 1; background: var(--brand-magenta); border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                            Apply Now <i class="fas fa-external-link-alt" style="margin-left: 8px;"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </transition>
@@ -681,7 +691,17 @@
                             <div class="form-group" style="flex:1;"><label>Start Time</label><input type="time" v-model="adminFormData.start_time" class="input-field"></div>
                             <div class="form-group" style="flex:1;"><label>End Time</label><input type="time" v-model="adminFormData.end_time" class="input-field"></div>
                         </div>
-                        <div class="form-group"><label>Event Details</label><textarea v-model="adminFormData.extra" class="input-field" rows="3"></textarea></div>
+                        <!-- 🚨 新增：上传海报照片 -->
+                        <div class="form-group">
+                            <label>Event Cover Image</label>
+                            <input type="file" class="input-field" accept="image/*" @change="handleFileUpload($event, 'img')">
+                            <div v-if="isUploading && adminFormData.img"><i class="fas fa-spinner fa-spin"></i> Uploading...</div>
+                            <img v-if="adminFormData.previewImg || adminFormData.img" :src="adminFormData.previewImg || getSafeImageUrl(adminFormData.img)" style="margin-top: 10px; width: 100px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">
+                        </div>
+                        <!-- 🚨 新增：报名链接 -->
+                        <div class="form-group"><label>Application URL (e.g. Google Form)</label><input type="text" v-model="adminFormData.apply_url" class="input-field" placeholder="https://..."></div>
+                        
+                        <div class="form-group"><label>Event Details / Description</label><textarea v-model="adminFormData.extra" class="input-field" rows="3"></textarea></div>
                     </template>
 
                         <!-- Tab 1: 基础信息 -->

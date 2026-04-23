@@ -35,7 +35,7 @@ createApp({
             selectedPaymentMethod: null, 
             adminFormType: 'Book',
             currentAdminTab: 'Basic', 
-            adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null, targetLevel: 'All', video_url: '', tutorial_pdf_url: '', quiz_url: '', softcopy_pdf_url: '' },
+            adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null, targetLevel: 'All', video_url: '', tutorial_pdf_url: '', quiz_url: '', softcopy_pdf_url: '' , apply_url: '' },
             loginForm: { email: '', password: '' },
             registerForm: { name: '', email: '', password: '' },
             checkoutForm: { address: '', country: '', shippingMethod: 'Ship' },
@@ -587,11 +587,12 @@ createApp({
                 alert(`Failed: ${error.message}`);
             }
         },
+        // ✅ 把 openEventModalForDate 方法改成这样：
         openEventModalForDate(dateStr) {
             this.adminFormType = 'Event';
             this.adminFormData = { 
                 title: '', price: '', img: '', extra: '', 
-                event_date: dateStr, start_time: '09:00', end_time: '11:00' 
+                event_date: dateStr, start_time: '09:00', end_time: '11:00', apply_url: '', previewImg: null 
             };
             this.showAdminModal = true;
         }
