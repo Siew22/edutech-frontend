@@ -532,3 +532,44 @@ select.input-field { appearance: auto; cursor: pointer; }
     margin-bottom: 10px;
     font-weight: 700;
 }
+/* ========================================================= */
+/* 📱 手机端极致适配 (Mobile Responsiveness) 
+/* 请务必放在 style.css 的最底部，以覆盖上面的样式 
+/* ========================================================= */
+
+@media (max-width: 768px) {
+    /* 1. 导航栏自适应：从左右排列变成上下堆叠，防溢出 */
+    .nav-container { flex-direction: column; height: auto; padding: 15px 0; gap: 15px; }
+    .nav-links { flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 0.9rem; margin-bottom: 5px; }
+    .nav-actions { justify-content: center; width: 100%; gap: 1rem; }
+
+    /* 2. 首页大图区：文字居中，图片跑到下方 */
+    .hero-section { flex-direction: column; text-align: center; padding: 3rem 1rem; }
+    .hero-content { margin-left: 0; margin-bottom: 2rem; max-width: 100%; }
+    .hero-title { font-size: 2.2rem; }
+    .hero-image { width: 100%; }
+    .hero-image img { width: 100%; }
+
+    /* 3. 首页三个特点框 (Features)：从并排变成上下排列 */
+    .features-section { flex-direction: column; margin: -20px 15px 40px; }
+    .feature-box { border-right: none; border-bottom: 1px solid var(--border-color); padding: 1.5rem; text-align: center; }
+    .feature-box:last-child { border-bottom: none; }
+
+    /* 4. 登录/注册页面：图片在上方，表单在下方 */
+    .auth-container { flex-direction: column; margin: 10px; }
+    .auth-image { height: 180px; } /* 手机上图片压缩高度 */
+    .auth-form-box { padding: 2rem 1.5rem; }
+
+    /* 5. 购物车和弹窗：在手机上充分利用屏幕宽度 */
+    .cart-sidebar { width: 100%; }
+    .checkout-modal { width: 95%; padding: 20px; }
+
+    /* 6. Admin 仪表盘表格优化：允许横向滚动，防止表格撑破屏幕 */
+    .admin-panel { overflow-x: auto; padding: 15px; }
+    .admin-table { font-size: 0.85rem; }
+    .admin-table th, .admin-table td { padding: 10px 8px; white-space: nowrap; }
+
+    /* 7. 日历格子优化 */
+    .day { min-height: 70px; padding: 5px; font-size: 0.9rem; }
+    .due-tag { font-size: 0.65rem; padding: 2px 4px; }
+}
