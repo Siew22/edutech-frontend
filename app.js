@@ -275,14 +275,22 @@ createApp({
             this.searchFilter = 'All';
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/search?q=${this.searchQuery}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const data = await response.json();
-                this.searchResults = data;
-                if (data.length === 0) {
-                    this.noResultsFound = true;
-                }
+            const response = await fetch(`${BACKEND_URL}/api/search?q=${this.searchQuery}`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            const rawData = await response.json();
+            
+            // 🚨 魔法补全：让特工把搜索结果里的每一张图片都去后端下载并转码！
+            this.searchResults = await Promise.all(rawData.map(async item => {
+                return {
+                    ...item,
+                    img: await this.fetchImageAsBlob(item.img)
+                };
+            }));
+            
+            if (rawData.length === 0) {
+                this.noResultsFound = true;
+            }
             } catch (error) {
                 console.error("Search failed:", error);
                 this.noResultsFound = true;
