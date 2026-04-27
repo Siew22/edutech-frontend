@@ -517,21 +517,20 @@
                 <div class="checkout-modal">
                     <h3 style="color:var(--brand-magenta); margin-bottom: 20px;">Shipping & Payment</h3>
                     
-                    <div class="form-group">
-                        <label>Delivery Address</label>
-                        <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="123 Main St">
-                    </div>
-                    <div class="form-group">
-                        <label>Country</label>
-                        <input type="text" v-model="checkoutForm.country" class="input-field" placeholder="Malaysia">
-                    </div>
-                    <div class="form-group">
-                        <label>Shipping Method</label>
-                        <select v-model="checkoutForm.shippingMethod" class="input-field">
-                            <option value="Ship">Standard Ship</option>
-                            <option value="Plane">Express Plane</option>
-                        </select>
-                    </div>
+                    <!-- 🚨 新增：数字化发货的高级提示框 -->
+                <div style="background: #fdf5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 1px dashed var(--brand-magenta);">
+                    <i class="fas fa-cloud-download-alt" style="font-size: 2rem; color: var(--brand-magenta); margin-bottom: 10px;"></i>
+                    <p style="margin: 0; color: #555; font-size: 0.95rem;">
+                        <strong>Digital Delivery Only</strong><br>
+                        No physical shipping required. All items will be instantly unlocked in your <strong>My Learning</strong> dashboard once the payment is verified.
+                    </p>
+                </div>
+
+                <!-- 🚨 保留电话号码，巧妙借用原来的 address 变量传给后端 -->
+                <div class="form-group">
+                    <label>Contact Number (For payment verification)</label>
+                    <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="e.g. 012-3456789">
+                </div>
 
                     <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;">
                     
