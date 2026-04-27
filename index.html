@@ -336,16 +336,20 @@
                             <h3><i class="fas fa-box"></i> Recent Orders</h3>
                             <table class="admin-table">
                                 <thead>
-                                 <!-- 🚨 增加 <th>Contact</th> 表头 -->
-                                 <tr><th>Order ID</th><th>Buyer</th><th>Contact</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+                                 <tr><th>Order ID</th><th>Buyer</th><th>Contact</th><th>Purchased Items</th><th>Total</th><th>Status</th><th>Actions</th></tr>
                             </thead>
                             <tbody>
                                   <tr v-for="order in orders" :key="order.id">
                                     <td>ORD-{{ order.id }}</td>
                                     <td>{{ order.buyer }}</td>
-                                    <!-- 🚨 把区号 (country) 和 号码 (address) 拼在一起显示 -->
                                     <td>{{ order.country }} {{ order.address }}</td>
-                                    <td>RM{{ order.total_amount }}</td>
+                                    
+                                    <!-- 🚨 新增：显示购买的物品列表 (调小字号并允许换行) -->
+                                    <td style="font-size: 0.85rem; max-width: 250px; white-space: normal; line-height: 1.4; color: #555;">
+                                        {{ order.purchased_items }}
+                                    </td>
+
+                                    <td><strong style="color: var(--brand-magenta);">RM{{ order.total_amount }}</strong></td>
                                         <td>
                                             <span :style="{ color: order.status === 'Completed' ? 'green' : 'orange', fontWeight: 'bold' }">
                                                 {{ order.status }}
