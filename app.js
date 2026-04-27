@@ -38,7 +38,7 @@ createApp({
             adminFormData: { title: '', price: '', img: '', category: '', duration: '', extra: '', description: '', event_date: '', start_time: '', end_time: '', previewImg: null, targetLevel: 'All', video_url: '', tutorial_pdf_url: '', quiz_url: '', softcopy_pdf_url: '' , apply_url: '' },
             loginForm: { email: '', password: '' },
             registerForm: { name: '', email: '', password: '' },
-            checkoutForm: { address: '', country: '', shippingMethod: 'Ship' },
+            checkoutForm: { address: '', country: '+60', shippingMethod: 'Ship' },
             newAdminForm: { name: '', email: '', password: '' },
             quizScoreForm: {},
             selectedNews: null,

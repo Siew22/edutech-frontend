@@ -529,7 +529,19 @@
                 <!-- 🚨 保留电话号码，巧妙借用原来的 address 变量传给后端 -->
                 <div class="form-group">
                     <label>Contact Number (For payment verification)</label>
-                    <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="e.g. 012-3456789">
+                    <div style="display: flex; gap: 10px;">
+                        <!-- 🚨 左侧：区号下拉框（巧妙借用废弃的 country 变量存入数据库） -->
+                        <select v-model="checkoutForm.country" class="input-field" style="width: 120px; flex-shrink: 0; cursor: pointer; padding: 12px 10px;">
+                            <option value="+60">🇲🇾 +60</option>
+                            <option value="+65">🇸🇬 +65</option>
+                            <option value="+62">🇮🇩 +62</option>
+                            <option value="+86">🇨🇳 +86</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+44">🇬🇧 +44</option>
+                        </select>
+                        <!-- 🚨 右侧：号码输入框（保留 address 变量） -->
+                        <input type="text" v-model="checkoutForm.address" class="input-field" placeholder="123456789" style="flex-grow: 1;">
+                    </div>
                 </div>
 
                     <hr style="border:none; border-top:1px solid #eee; margin: 20px 0;">
